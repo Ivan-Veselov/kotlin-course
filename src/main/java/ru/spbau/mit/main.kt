@@ -1,5 +1,13 @@
 package ru.spbau.mit
 
+import java.util.*
+
+interface GraphTraverser {
+    fun stepInside(vertex: Graph.Vertex)
+
+    fun stepOutside(vertex: Graph.Vertex)
+}
+
 class Graph(edges: List<Pair<Int, Int>>) {
     val vertices: List<Vertex>
 
@@ -23,11 +31,43 @@ class Graph(edges: List<Pair<Int, Int>>) {
         }
     }
 
-    interface Vertex {
-        val neighbours: List<Vertex>
+    abstract inner class Vertex {
+        abstract val neighbours: List<Vertex>
+
+        fun depthFirstSearch(traverser: GraphTraverser) {
+            data class VertexState(val vertex: Vertex) {
+                val iterator: Iterator<Vertex> = vertex.neighbours.iterator()
+            }
+
+            val visited: HashSet<Vertex> = HashSet(this@Graph.vertices.size)
+            val stack: LinkedList<VertexState> = LinkedList()
+
+            val encounterNewVertex: (Vertex) -> Unit = {
+                traverser.stepInside(it)
+                visited.add(it)
+                stack.push(VertexState(it))
+            }
+
+            encounterNewVertex(this)
+
+            while (stack.isNotEmpty()) {
+                val currentVertexState = stack.peek()
+                if (!currentVertexState.iterator.hasNext()) {
+                    traverser.stepOutside(currentVertexState.vertex)
+                    continue
+                }
+
+                val nextVertex = currentVertexState.iterator.next()
+                if (visited.contains(nextVertex)) {
+                    continue
+                }
+
+                encounterNewVertex(nextVertex)
+            }
+        }
     }
 
-    private inner class VertexImpl constructor(neighbourIds: List<Int>) : Vertex {
+    private inner class VertexImpl constructor(neighbourIds: List<Int>) : Vertex() {
         override val neighbours: List<Vertex> by lazy {
             neighbourIds.map { vertices[it] }
         }
