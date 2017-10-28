@@ -63,8 +63,10 @@ class Graph(edges: List<Pair<Int, Int>>) {
             while (stack.isNotEmpty()) {
                 val currentVertexState = stack.peek()
                 if (!currentVertexState.iterator.hasNext()) {
+                    stack.pop()
                     traverser.stepOutside(currentVertexState.vertex,
-                                          stack.getOrNull(stack.size - 2)?.vertex)
+                                          stack.peek()?.vertex)
+
                     continue
                 }
 
@@ -114,18 +116,59 @@ fun countSubtreeUniversities(root: Graph.Vertex, isUniversity: List<Boolean>) : 
         }
 
         override fun stepOutside(vertex: Graph.Vertex, parent: Graph.Vertex?) {
-            if (parent == null) {
-                return
+            if (parent != null) {
+                subtreeUniversities[parent.id] += subtreeUniversities[vertex.id]
             }
-
-            subtreeUniversities[parent.id] += subtreeUniversities[vertex.id]
         }
     })
 
     return subtreeUniversities
 }
 
-fun solve(universities: List<Int>, roads: List<Pair<Int, Int>>): Int {
+fun findCentralVertex(root: Graph.Vertex, isUniversity: List<Boolean>) : Graph.Vertex {
+    val subtreeUniversities: List<Int> = countSubtreeUniversities(root, isUniversity)
+    val universitiesNumber = subtreeUniversities[root.id]
+
+    var centralVertex: Graph.Vertex? = null
+    root.depthFirstSearch(object : GraphTraverser {
+        override fun stepOutside(vertex: Graph.Vertex, parent: Graph.Vertex?) {
+            val children = vertex.neighbours().filter { it != parent }
+
+            if (
+                children.none { subtreeUniversities[it.id] > universitiesNumber / 2 } &&
+                subtreeUniversities[vertex.id] >= universitiesNumber / 2
+            ) {
+                centralVertex = vertex
+            }
+        }
+    })
+
+    return centralVertex!!
+}
+
+fun countLength(centralVertex: Graph.Vertex, isUniversity: List<Boolean>): Long {
+    var length: Long = 0
+
+    centralVertex.depthFirstSearch(object : GraphTraverser {
+        var depth = -1
+
+        override fun stepInside(vertex: Graph.Vertex) {
+            depth++
+
+            if (isUniversity[vertex.id]) {
+                length += depth
+            }
+        }
+
+        override fun stepOutside(vertex: Graph.Vertex, parent: Graph.Vertex?) {
+            depth--
+        }
+    })
+
+    return length
+}
+
+fun solve(universities: List<Int>, roads: List<Pair<Int, Int>>): Long {
     val tree = Graph(roads.map { Pair(it.first - 1, it.second - 1) })
 
     val isUniversity: MutableList<Boolean> = MutableList(tree.vertices.size) { false }
@@ -134,11 +177,9 @@ fun solve(universities: List<Int>, roads: List<Pair<Int, Int>>): Int {
     }
 
     val root = tree.arbitraryVertex()
-    val subtreeUniversities = countSubtreeUniversities(root, isUniversity)
+    val centralVertex = findCentralVertex(root, isUniversity)
 
-    
-
-    return 0
+    return countLength(centralVertex, isUniversity)
 }
 
 class InvalidInputFormatException : Exception {
@@ -173,5 +214,5 @@ fun main(args: Array<String>) {
     val universities: List<Int> = readLineAsIntList()
     val roads: List<Pair<Int, Int>> = List(n - 1) { readLineAsIntPair() }
 
-    solve(universities, roads)
+    print(solve(universities, roads))
 }

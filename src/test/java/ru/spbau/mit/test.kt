@@ -7,7 +7,7 @@ import org.junit.Assert.*
 class TestSource {
     @Test
     fun test1() {
-        val ans: Int = solve(
+        val ans: Long = solve(
                 listOf(1, 5, 6, 2),
                 listOf(
                         Pair(1, 3),
@@ -22,7 +22,7 @@ class TestSource {
 
     @Test
     fun test2() {
-        val ans: Int = solve(
+        val ans: Long = solve(
                 listOf(3, 2, 1, 6, 5, 9),
                 listOf(
                         Pair(8, 9),
