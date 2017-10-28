@@ -33,8 +33,46 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
         }
     }
 
-    fun arbitraryVertex(): Vertex {
-        return vertices[0]
+    fun findCentralVertex() : MarkedGraph.Vertex {
+        val root = vertices[0]
+        val subtreeUniversities: List<Int> = countSubtreeUniversities(root)
+        val universitiesNumber = subtreeUniversities[root.id]
+
+        var centralVertex: MarkedGraph.Vertex? = null
+        root.depthFirstSearch(object : GraphTraverser {
+            override fun stepOutside(vertex: MarkedGraph.Vertex, parent: MarkedGraph.Vertex?) {
+                val children = vertex.neighbours().filter { it != parent }
+
+                if (
+                children.none { subtreeUniversities[it.id] > universitiesNumber / 2 } &&
+                        subtreeUniversities[vertex.id] >= universitiesNumber / 2
+                        ) {
+                    centralVertex = vertex
+                }
+            }
+        })
+
+        return centralVertex!!
+    }
+
+    private fun countSubtreeUniversities(root: MarkedGraph.Vertex) : List<Int> {
+        val subtreeUniversities: MutableList<Int> = MutableList(vertices.size) { 0 }
+
+        root.depthFirstSearch(object : GraphTraverser {
+            override fun stepInside(vertex: MarkedGraph.Vertex) {
+                if (vertex.isMarked) {
+                    subtreeUniversities[vertex.id] = 1
+                }
+            }
+
+            override fun stepOutside(vertex: MarkedGraph.Vertex, parent: MarkedGraph.Vertex?) {
+                if (parent != null) {
+                    subtreeUniversities[parent.id] += subtreeUniversities[vertex.id]
+                }
+            }
+        })
+
+        return subtreeUniversities
     }
 
     abstract inner class Vertex {
@@ -44,16 +82,13 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
 
         abstract fun neighbours(): Iterable<Vertex>
 
-        fun graph(): MarkedGraph {
-            return this@MarkedGraph
-        }
-
         fun depthFirstSearch(traverser: GraphTraverser) {
             data class VertexState(val vertex: Vertex) {
                 val iterator: Iterator<Vertex> = vertex.neighbours().iterator()
             }
 
-            val visited: MutableList<Boolean> = MutableList(this@MarkedGraph.vertices.size) { false }
+            val visited: MutableList<Boolean> =
+                    MutableList(this@MarkedGraph.vertices.size) { false }
             val stack: LinkedList<VertexState> = LinkedList()
 
             val encounterNewVertex: (Vertex) -> Unit = {
@@ -109,52 +144,10 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
     }
 }
 
-fun countSubtreeUniversities(root: MarkedGraph.Vertex) : List<Int> {
-    val tree: MarkedGraph = root.graph()
-    val subtreeUniversities: MutableList<Int> = MutableList(tree.vertices.size) { 0 }
-
-    root.depthFirstSearch(object : GraphTraverser {
-        override fun stepInside(vertex: MarkedGraph.Vertex) {
-            if (vertex.isMarked) {
-                subtreeUniversities[vertex.id] = 1
-            }
-        }
-
-        override fun stepOutside(vertex: MarkedGraph.Vertex, parent: MarkedGraph.Vertex?) {
-            if (parent != null) {
-                subtreeUniversities[parent.id] += subtreeUniversities[vertex.id]
-            }
-        }
-    })
-
-    return subtreeUniversities
-}
-
-fun findCentralVertex(root: MarkedGraph.Vertex) : MarkedGraph.Vertex {
-    val subtreeUniversities: List<Int> = countSubtreeUniversities(root)
-    val universitiesNumber = subtreeUniversities[root.id]
-
-    var centralVertex: MarkedGraph.Vertex? = null
-    root.depthFirstSearch(object : GraphTraverser {
-        override fun stepOutside(vertex: MarkedGraph.Vertex, parent: MarkedGraph.Vertex?) {
-            val children = vertex.neighbours().filter { it != parent }
-
-            if (
-                children.none { subtreeUniversities[it.id] > universitiesNumber / 2 } &&
-                subtreeUniversities[vertex.id] >= universitiesNumber / 2
-            ) {
-                centralVertex = vertex
-            }
-        }
-    })
-
-    return centralVertex!!
-}
-
-fun countLength(centralVertex: MarkedGraph.Vertex): Long {
+fun summaryDistanceTo(vertex: MarkedGraph.Vertex): Long {
     var length: Long = 0
 
-    centralVertex.depthFirstSearch(object : GraphTraverser {
+    vertex.depthFirstSearch(object : GraphTraverser {
         var depth = -1
 
         override fun stepInside(vertex: MarkedGraph.Vertex) {
@@ -180,11 +173,9 @@ fun solve(numberOfVertices: Int, universities: List<Int>, roads: List<Pair<Int, 
     }
 
     val tree = MarkedGraph(roads.map { Pair(it.first - 1, it.second - 1) }, isUniversity)
+    val centralVertex = tree.findCentralVertex()
 
-    val root = tree.arbitraryVertex()
-    val centralVertex = findCentralVertex(root)
-
-    return countLength(centralVertex)
+    return summaryDistanceTo(centralVertex)
 }
 
 class InvalidInputFormatException : Exception {
