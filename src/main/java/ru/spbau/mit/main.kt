@@ -3,9 +3,9 @@ package ru.spbau.mit
 import java.util.*
 
 interface GraphTraverser {
-    fun stepInside(vertex: Graph.Vertex)
+    fun stepInside(vertex: Graph.Vertex) {}
 
-    fun stepOutside(vertex: Graph.Vertex)
+    fun stepOutside(vertex: Graph.Vertex, parent: Graph.Vertex?) {}
 }
 
 class Graph(edges: List<Pair<Int, Int>>) {
@@ -27,24 +27,34 @@ class Graph(edges: List<Pair<Int, Int>>) {
         }
 
         vertices = List(numberOfVertices) {
-            VertexImpl(neighboursId[it])
+            VertexImpl(it, neighboursId[it])
         }
     }
 
+    fun arbitraryVertex(): Vertex {
+        return vertices[0]
+    }
+
     abstract inner class Vertex {
-        abstract val neighbours: List<Vertex>
+        abstract val id: Int
+
+        abstract fun neighbours(): Iterable<Vertex>
+
+        fun graph(): Graph {
+            return this@Graph
+        }
 
         fun depthFirstSearch(traverser: GraphTraverser) {
             data class VertexState(val vertex: Vertex) {
-                val iterator: Iterator<Vertex> = vertex.neighbours.iterator()
+                val iterator: Iterator<Vertex> = vertex.neighbours().iterator()
             }
 
-            val visited: HashSet<Vertex> = HashSet(this@Graph.vertices.size)
+            val visited: MutableList<Boolean> = MutableList(this@Graph.vertices.size) { false }
             val stack: LinkedList<VertexState> = LinkedList()
 
             val encounterNewVertex: (Vertex) -> Unit = {
                 traverser.stepInside(it)
-                visited.add(it)
+                visited[it.id] = true
                 stack.push(VertexState(it))
             }
 
@@ -53,12 +63,13 @@ class Graph(edges: List<Pair<Int, Int>>) {
             while (stack.isNotEmpty()) {
                 val currentVertexState = stack.peek()
                 if (!currentVertexState.iterator.hasNext()) {
-                    traverser.stepOutside(currentVertexState.vertex)
+                    traverser.stepOutside(currentVertexState.vertex,
+                                          stack.getOrNull(stack.size - 2)?.vertex)
                     continue
                 }
 
                 val nextVertex = currentVertexState.iterator.next()
-                if (visited.contains(nextVertex)) {
+                if (visited[nextVertex.id]) {
                     continue
                 }
 
@@ -67,15 +78,65 @@ class Graph(edges: List<Pair<Int, Int>>) {
         }
     }
 
-    private inner class VertexImpl constructor(neighbourIds: List<Int>) : Vertex() {
-        override val neighbours: List<Vertex> by lazy {
-            neighbourIds.map { vertices[it] }
+    private inner class VertexImpl constructor(
+        override val id: Int,
+        private val neighbourIds: List<Int>
+    ) : Vertex() {
+        override fun neighbours(): Iterable<Vertex> {
+            return object : Iterable<Vertex> {
+                override fun iterator(): Iterator<Vertex> {
+                    return object : Iterator<Vertex> {
+                        private val iterator = neighbourIds.iterator()
+
+                        override fun next(): Vertex {
+                            return this@Graph.vertices[iterator.next()]
+                        }
+
+                        override fun hasNext(): Boolean {
+                            return iterator.hasNext()
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
+fun countSubtreeUniversities(root: Graph.Vertex, isUniversity: List<Boolean>) : List<Int> {
+    val tree: Graph = root.graph()
+    val subtreeUniversities: MutableList<Int> = MutableList(tree.vertices.size) { 0 }
+
+    root.depthFirstSearch(object : GraphTraverser {
+        override fun stepInside(vertex: Graph.Vertex) {
+            if (isUniversity[vertex.id]) {
+                subtreeUniversities[vertex.id] = 1
+            }
+        }
+
+        override fun stepOutside(vertex: Graph.Vertex, parent: Graph.Vertex?) {
+            if (parent == null) {
+                return
+            }
+
+            subtreeUniversities[parent.id] += subtreeUniversities[vertex.id]
+        }
+    })
+
+    return subtreeUniversities
+}
+
 fun solve(universities: List<Int>, roads: List<Pair<Int, Int>>): Int {
     val tree = Graph(roads.map { Pair(it.first - 1, it.second - 1) })
+
+    val isUniversity: MutableList<Boolean> = MutableList(tree.vertices.size) { false }
+    for (vertexNumber in universities) {
+        isUniversity[vertexNumber - 1] = true
+    }
+
+    val root = tree.arbitraryVertex()
+    val subtreeUniversities = countSubtreeUniversities(root, isUniversity)
+
+    
 
     return 0
 }
