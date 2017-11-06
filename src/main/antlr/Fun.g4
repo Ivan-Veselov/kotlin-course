@@ -6,11 +6,12 @@ file
     ;
 
 block
-    :   statements += statement (NEWLINE statements += statement)*
+    :   (NEWLINE)* statements += statement (NEWLINE+ statements += statement)* (NEWLINE)*
     ;
 
 statement
-    :   'fun' functionName = IDENTIFIER '(' functionDefinitionParameterNames ')'
+    :   'fun' functionName = IDENTIFIER '(' parameterNames += IDENTIFIER
+                                            (',' parameterNames += IDENTIFIER)* ')'
         '{' functionBody = block '}'
         # functionDefinitionStatement
 
@@ -34,15 +35,14 @@ statement
         # returnStatement
     ;
 
-functionDefinitionParameterNames
-    :   names += IDENTIFIER (',' names += IDENTIFIER)*
-    ;
-
 expression
     :   '(' expression ')'
         # expressionInParentheses
 
-    |   IDENTIFIER '(' functionCallArguments ')'
+    |   IDENTIFIER
+        # variableAccessExpression
+
+    |   IDENTIFIER '(' arguments += expression (',' arguments += expression)* ')'
         # functionCallExpression
 
     |   LITERAL
@@ -65,10 +65,6 @@ expression
 
     |   leftOperand = expression operation = '||' rightOperand = expression
         # binaryExpression
-    ;
-
-functionCallArguments
-    :   arguments += expression (',' arguments += expression)*
     ;
 
 
