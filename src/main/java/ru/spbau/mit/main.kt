@@ -15,6 +15,13 @@ import ru.spbau.mit.parser.FunVisitor
 import java.io.File
 import java.nio.charset.Charset
 
+fun buildAst(sourceCode: String): ru.spbau.mit.ast.File { // todo rename ast nodes
+    val funLexer = FunLexer(CharStreams.fromString(sourceCode))
+    val funParser = FunParser(BufferedTokenStream(funLexer))
+
+    return ru.spbau.mit.ast.File.buildFromRuleContext(funParser.file())
+}
+
 fun main(args: Array<String>) {
     if (args.size != 1) {
         println("Invalid number of arguments. Should be 1")
@@ -26,10 +33,7 @@ fun main(args: Array<String>) {
 
     // println(sourceCode)
 
-    val funLexer = FunLexer(CharStreams.fromString(sourceCode))
-    val funParser = FunParser(BufferedTokenStream(funLexer))
-
-    ScopeEvaluator(null, System.out).visit(funParser.file())
+    buildAst(sourceCode).body.execute(Context(BuiltinsHandler(System.out)))
 
     /*fun visit(ctx: ParserRuleContext, indent: Int) {
         print(" ".repeat(indent))

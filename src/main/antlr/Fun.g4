@@ -103,7 +103,7 @@ NEWLINE
     ;
 
 COMMENTARY
-    :   '//' .*? NEWLINE -> skip
+    :   '//' .*? (NEWLINE | EOF) -> skip
     ;
 
 WHITESPACE

@@ -1,13 +1,10 @@
 package ru.spbau.mit
 
-import ru.spbau.mit.parser.FunParser
+import com.google.common.collect.ImmutableList
+import ru.spbau.mit.ast.Block
 
-class Function(
-    definitionStatement: FunParser.FunctionDefinitionStatementContext,
+data class Function(
+    val body: Block,
+    val argumentNames: ImmutableList<String>,
     val initialContext: Context.FixedContext
-) {
-    val argumentNames: List<String> =
-            definitionStatement.parameterNames.map { it.text }
-
-    val body: FunParser.BlockContext = definitionStatement.functionBody
-}
+)

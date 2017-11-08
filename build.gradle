@@ -39,6 +39,7 @@ dependencies {
     antlr "org.antlr:antlr4:4.7"
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
     compile "org.jetbrains.kotlin:kotlin-reflect:1.1.51"
+    compile group: 'com.google.guava', name: 'guava', version: '23.3-jre'
 }
 
 compileKotlin {
