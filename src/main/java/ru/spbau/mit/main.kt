@@ -91,10 +91,10 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
                     MutableList(this@MarkedGraph.vertices.size) { false }
             val stack: LinkedList<VertexState> = LinkedList()
 
-            val encounterNewVertex: (Vertex) -> Unit = {
-                traverser.stepInside(it)
-                visited[it.id] = true
-                stack.push(VertexState(it))
+            fun encounterNewVertex(vertex: Vertex) {
+                traverser.stepInside(vertex)
+                visited[vertex.id] = true
+                stack.push(VertexState(vertex))
             }
 
             encounterNewVertex(this)
@@ -124,22 +124,8 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
         override val isMarked: Boolean,
         private val neighbourIds: List<Int>
     ) : Vertex() {
-        override fun neighbours(): Iterable<Vertex> {
-            return object : Iterable<Vertex> {
-                override fun iterator(): Iterator<Vertex> {
-                    return object : Iterator<Vertex> {
-                        private val iterator = neighbourIds.iterator()
-
-                        override fun next(): Vertex {
-                            return this@MarkedGraph.vertices[iterator.next()]
-                        }
-
-                        override fun hasNext(): Boolean {
-                            return iterator.hasNext()
-                        }
-                    }
-                }
-            }
+        override fun neighbours(): Iterable<Vertex> = neighbourIds.map {
+            this@MarkedGraph.vertices[it]
         }
     }
 }
@@ -178,28 +164,18 @@ fun solve(numberOfVertices: Int, universities: List<Int>, roads: List<Pair<Int, 
     return summaryDistanceTo(centralVertex)
 }
 
-class InvalidInputFormatException : Exception {
-    constructor()
-
-    constructor(reason: Exception) : super(reason)
-}
-
 fun main(args: Array<String>) {
     fun readLineAsIntList(): List<Int> {
-        val line: String = readLine() ?: throw InvalidInputFormatException()
+        val line: String = readLine() ?: throw IllegalArgumentException()
 
-        try {
-            return line.split(' ').map(String::toInt)
-        } catch(exception: NumberFormatException) {
-            throw InvalidInputFormatException(exception)
-        }
+        return line.split(' ').map(String::toInt)
     }
 
     fun readLineAsIntPair(): Pair<Int, Int> {
         val ints: List<Int> = readLineAsIntList()
 
         if (ints.size != 2) {
-            throw InvalidInputFormatException()
+            throw IllegalArgumentException()
         }
 
         val (i1, i2) = ints
