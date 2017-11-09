@@ -1,7 +1,5 @@
 package ru.spbau.mit
 
-import java.util.*
-
 interface GraphTraverser {
     fun stepInside(vertex: MarkedGraph.Vertex) {}
 
@@ -30,7 +28,7 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
         }
 
         vertices = List(numberOfVertices) {
-            VertexImpl(it, marks[it], neighboursId[it])
+            Vertex(it, marks[it], neighboursId[it])
         }
     }
 
@@ -76,12 +74,14 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
         return subtreeUniversities
     }
 
-    abstract inner class Vertex {
-        abstract val id: Int
-
-        abstract val isMarked: Boolean
-
-        abstract fun neighbours(): Iterable<Vertex>
+    inner class Vertex(
+        val id: Int,
+        val isMarked: Boolean,
+        private val neighbourIds: List<Int>
+    ) {
+        fun neighbours(): Iterable<Vertex> = neighbourIds.map {
+            this@MarkedGraph.vertices[it]
+        }
 
         fun depthFirstSearch(traverser: GraphTraverser) {
             val visited: MutableList<Boolean> =
@@ -103,16 +103,6 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
 
             dfsImpl(this)
             traverser.stepOutside(this, null)
-        }
-    }
-
-    private inner class VertexImpl constructor(
-        override val id: Int,
-        override val isMarked: Boolean,
-        private val neighbourIds: List<Int>
-    ) : Vertex() {
-        override fun neighbours(): Iterable<Vertex> = neighbourIds.map {
-            this@MarkedGraph.vertices[it]
         }
     }
 }
@@ -153,17 +143,14 @@ fun solve(numberOfVertices: Int, universities: List<Int>, roads: List<Pair<Int, 
 
 fun main(args: Array<String>) {
     fun readLineAsIntList(): List<Int> {
-        val line: String = readLine() ?: throw IllegalArgumentException()
+        val line: String = readLine()!!
 
         return line.split(' ').map(String::toInt)
     }
 
     fun readLineAsIntPair(): Pair<Int, Int> {
         val ints: List<Int> = readLineAsIntList()
-
-        if (ints.size != 2) {
-            throw IllegalArgumentException()
-        }
+        assert(ints.size == 2)
 
         return Pair(ints[0], ints[1])
     }
