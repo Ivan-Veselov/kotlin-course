@@ -84,39 +84,25 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
         abstract fun neighbours(): Iterable<Vertex>
 
         fun depthFirstSearch(traverser: GraphTraverser) {
-            data class VertexState(val vertex: Vertex) {
-                val iterator: Iterator<Vertex> = vertex.neighbours().iterator()
-            }
-
             val visited: MutableList<Boolean> =
                     MutableList(this@MarkedGraph.vertices.size) { false }
-            val stack: LinkedList<VertexState> = LinkedList()
 
-            fun encounterNewVertex(vertex: Vertex) {
+            fun dfsImpl(vertex: Vertex) {
                 traverser.stepInside(vertex)
                 visited[vertex.id] = true
-                stack.push(VertexState(vertex))
+
+                for (neighbour in vertex.neighbours()) {
+                    if (visited[neighbour.id]) {
+                        continue
+                    }
+
+                    dfsImpl(neighbour)
+                    traverser.stepOutside(neighbour, vertex)
+                }
             }
 
-            encounterNewVertex(this)
-
-            while (stack.isNotEmpty()) {
-                val currentVertexState = stack.peek()
-                if (!currentVertexState.iterator.hasNext()) {
-                    stack.pop()
-                    traverser.stepOutside(currentVertexState.vertex,
-                                          stack.peek()?.vertex)
-
-                    continue
-                }
-
-                val nextVertex = currentVertexState.iterator.next()
-                if (visited[nextVertex.id]) {
-                    continue
-                }
-
-                encounterNewVertex(nextVertex)
-            }
+            dfsImpl(this)
+            traverser.stepOutside(this, null)
         }
     }
 
