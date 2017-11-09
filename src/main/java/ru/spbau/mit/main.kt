@@ -14,9 +14,10 @@ class MarkedGraph(edges: List<Pair<Int, Int>>, marks: List<Boolean>) {
     init {
         val numberOfVertices: Int = marks.size
 
-        edges.filter { it.first < 0 || it.first >= numberOfVertices ||
-                       it.second < 0 || it.second >= numberOfVertices }
-             .forEach { throw IllegalArgumentException() }
+        assert(edges.none {
+            it.first < 0 || it.first >= numberOfVertices ||
+            it.second < 0 || it.second >= numberOfVertices
+        })
 
         val neighboursId: Array<MutableList<Int>> = Array(numberOfVertices) { mutableListOf<Int>() }
 
@@ -178,8 +179,7 @@ fun main(args: Array<String>) {
             throw IllegalArgumentException()
         }
 
-        val (i1, i2) = ints
-        return Pair(i1, i2)
+        return Pair(ints[0], ints[1])
     }
 
     val (n, _) = readLineAsIntPair()
