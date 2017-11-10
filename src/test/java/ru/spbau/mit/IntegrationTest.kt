@@ -1,19 +1,14 @@
 package ru.spbau.mit
 
-import org.apache.commons.io.FileUtils
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.*
+import org.junit.Assert.assertThat
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import java.nio.charset.Charset
-import java.nio.file.Paths
 
-class IntegrationTest {
+class IntegrationTest : TestClass() {
     private fun testSourceCode(sourceFileName: String, expectedOutput: String) {
-        val sourcesPath = Paths.get(javaClass.getResource(sourceFileName).toURI())
-        val charset: Charset? = null
-        val sourceCode = FileUtils.readFileToString(sourcesPath.toFile(), charset)
+        val sourceCode = getFileContent(sourceFileName)
 
         val byteArray = ByteArrayOutputStream()
         PrintStream(byteArray).use {
