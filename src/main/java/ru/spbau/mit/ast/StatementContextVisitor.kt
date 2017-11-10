@@ -10,114 +10,114 @@ import ru.spbau.mit.parser.FunVisitor
 
 class NotAStatementException : Exception()
 
-object StatementContextVisitor : FunVisitor<Statement> {
+object StatementContextVisitor : FunVisitor<AstStatement> {
     override fun visitFunctionDefinitionStatement(
         ctx: FunParser.FunctionDefinitionStatementContext
-    ): Statement {
-        return FunctionDefinition(
+    ): AstStatement {
+        return AstFunctionDefinition(
             ctx.functionName.text,
             ImmutableList.copyOf(ctx.parameterNames.map { it.text }),
-            Block.buildFromRuleContext(ctx.functionBody)
+            AstBlock.buildFromRuleContext(ctx.functionBody)
         )
     }
 
-    override fun visitExpressionStatement(ctx: FunParser.ExpressionStatementContext): Statement {
-        return Expression.buildFromRuleContext(ctx.expression())
+    override fun visitExpressionStatement(ctx: FunParser.ExpressionStatementContext): AstStatement {
+        return AstExpression.buildFromRuleContext(ctx.expression())
     }
 
-    override fun visitReturnStatement(ctx: FunParser.ReturnStatementContext): Statement {
-        return Return(Expression.buildFromRuleContext(ctx.expression()))
+    override fun visitReturnStatement(ctx: FunParser.ReturnStatementContext): AstStatement {
+        return AstReturn(AstExpression.buildFromRuleContext(ctx.expression()))
     }
 
     override fun visitVariableDefinitionStatement(
         ctx: FunParser.VariableDefinitionStatementContext
-    ): Statement {
+    ): AstStatement {
         val initializingExpression =
             if (ctx.initialValueExpression != null) {
-                Expression.buildFromRuleContext(ctx.initialValueExpression)
+                AstExpression.buildFromRuleContext(ctx.initialValueExpression)
             } else {
                 null
             }
 
-        return VariableDefinition(
+        return AstVariableDefinition(
             ctx.variableName.text,
             initializingExpression
         )
     }
 
-    override fun visitWhileStatement(ctx: FunParser.WhileStatementContext): Statement {
-        return While(
-            Expression.buildFromRuleContext(ctx.condition),
-            Block.buildFromRuleContext(ctx.body)
+    override fun visitWhileStatement(ctx: FunParser.WhileStatementContext): AstStatement {
+        return AstWhile(
+            AstExpression.buildFromRuleContext(ctx.condition),
+            AstBlock.buildFromRuleContext(ctx.body)
         )
     }
 
-    override fun visitIfStatement(ctx: FunParser.IfStatementContext): Statement {
+    override fun visitIfStatement(ctx: FunParser.IfStatementContext): AstStatement {
         val elseBody =
-            if (ctx.elseBody != null) Block.buildFromRuleContext(ctx.elseBody)
+            if (ctx.elseBody != null) AstBlock.buildFromRuleContext(ctx.elseBody)
             else null
 
-        return If(
-            Expression.buildFromRuleContext(ctx.condition),
-            Block.buildFromRuleContext(ctx.thenBody),
+        return AstIf(
+            AstExpression.buildFromRuleContext(ctx.condition),
+            AstBlock.buildFromRuleContext(ctx.thenBody),
             elseBody
         )
     }
 
-    override fun visitAssignmentStatement(ctx: FunParser.AssignmentStatementContext): Statement {
-        return Assignment(
+    override fun visitAssignmentStatement(ctx: FunParser.AssignmentStatementContext): AstStatement {
+        return AstAssignment(
             ctx.IDENTIFIER().text,
-            Expression.buildFromRuleContext(ctx.expression())
+            AstExpression.buildFromRuleContext(ctx.expression())
         )
     }
 
-    override fun visitFile(ctx: FunParser.FileContext): Statement {
+    override fun visitFile(ctx: FunParser.FileContext): AstStatement {
         throw NotAStatementException()
     }
 
-    override fun visitTerminal(node: TerminalNode): Statement {
+    override fun visitTerminal(node: TerminalNode): AstStatement {
         throw NotAStatementException()
     }
 
-    override fun visitBlock(ctx: FunParser.BlockContext): Statement {
+    override fun visitBlock(ctx: FunParser.BlockContext): AstStatement {
         throw NotAStatementException()
     }
 
-    override fun visitChildren(node: RuleNode): Statement {
+    override fun visitChildren(node: RuleNode): AstStatement {
         throw NotAStatementException()
     }
 
-    override fun visitBinaryExpression(ctx: FunParser.BinaryExpressionContext): Statement {
+    override fun visitBinaryExpression(ctx: FunParser.BinaryExpressionContext): AstStatement {
         throw NotAStatementException()
     }
 
     override fun visitVariableAccessExpression(
         ctx: FunParser.VariableAccessExpressionContext
-    ): Statement {
+    ): AstStatement {
         throw NotAStatementException()
     }
 
     override fun visitFunctionCallExpression(
         ctx: FunParser.FunctionCallExpressionContext
-    ): Statement {
+    ): AstStatement {
         throw NotAStatementException()
     }
 
-    override fun visitLiteralExpression(ctx: FunParser.LiteralExpressionContext): Statement {
+    override fun visitLiteralExpression(ctx: FunParser.LiteralExpressionContext): AstStatement {
         throw NotAStatementException()
     }
 
-    override fun visitErrorNode(node: ErrorNode): Statement {
+    override fun visitErrorNode(node: ErrorNode): AstStatement {
         throw NotAStatementException()
     }
 
-    override fun visit(tree: ParseTree): Statement {
+    override fun visit(tree: ParseTree): AstStatement {
         throw NotAStatementException()
     }
 
     override fun visitExpressionInParentheses(
         ctx: FunParser.ExpressionInParenthesesContext
-    ): Statement {
+    ): AstStatement {
         throw NotAStatementException()
     }
 }

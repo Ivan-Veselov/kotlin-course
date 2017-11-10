@@ -12,97 +12,97 @@ class NotAnExpressionException : Exception()
 
 class UnknownOperationLiteral : Exception()
 
-object ExpressionContextVisitor : FunVisitor<Expression> {
+object ExpressionContextVisitor : FunVisitor<AstExpression> {
     override fun visitLiteralExpression(
         ctx: FunParser.LiteralExpressionContext?
-    ): Expression {
-        return Literal(Integer.parseInt(ctx!!.LITERAL().text))
+    ): AstExpression {
+        return AstLiteral(Integer.parseInt(ctx!!.LITERAL().text))
     }
 
     override fun visitVariableAccessExpression(
         ctx: FunParser.VariableAccessExpressionContext?
-    ): Expression {
-        return VariableAccess(ctx!!.IDENTIFIER().text)
+    ): AstExpression {
+        return AstVariableAccess(ctx!!.IDENTIFIER().text)
     }
 
     override fun visitFunctionCallExpression(
         ctx: FunParser.FunctionCallExpressionContext?
-    ): Expression {
-        return FunctionCall(
+    ): AstExpression {
+        return AstFunctionCall(
             ctx!!.IDENTIFIER().text,
-            ImmutableList.copyOf(ctx.arguments.map { Expression.buildFromRuleContext(it) })
+            ImmutableList.copyOf(ctx.arguments.map { AstExpression.buildFromRuleContext(it) })
         )
     }
 
     override fun visitExpressionInParentheses(
         ctx: FunParser.ExpressionInParenthesesContext?
-    ): Expression {
+    ): AstExpression {
         return ctx!!.expression().accept(this)
     }
 
-    override fun visitBinaryExpression(ctx: FunParser.BinaryExpressionContext?): Expression {
-        return BinaryExpression(
+    override fun visitBinaryExpression(ctx: FunParser.BinaryExpressionContext?): AstExpression {
+        return AstBinaryExpression(
             BinaryOperationType.fromString(
                 ctx!!.operation.text
             ) ?: throw UnknownOperationLiteral(),
-            Expression.buildFromRuleContext(ctx.leftOperand),
-            Expression.buildFromRuleContext(ctx.rightOperand)
+            AstExpression.buildFromRuleContext(ctx.leftOperand),
+            AstExpression.buildFromRuleContext(ctx.rightOperand)
         )
     }
 
     override fun visitVariableDefinitionStatement(
         ctx: FunParser.VariableDefinitionStatementContext?
-    ): Expression {
+    ): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitTerminal(node: TerminalNode?): Expression {
+    override fun visitTerminal(node: TerminalNode?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitChildren(node: RuleNode?): Expression {
+    override fun visitChildren(node: RuleNode?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitFile(ctx: FunParser.FileContext?): Expression {
+    override fun visitFile(ctx: FunParser.FileContext?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitBlock(ctx: FunParser.BlockContext?): Expression {
+    override fun visitBlock(ctx: FunParser.BlockContext?): AstExpression {
         throw NotAnExpressionException()
     }
 
     override fun visitFunctionDefinitionStatement(
         ctx: FunParser.FunctionDefinitionStatementContext?
-    ): Expression {
+    ): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitExpressionStatement(ctx: FunParser.ExpressionStatementContext?): Expression {
+    override fun visitExpressionStatement(ctx: FunParser.ExpressionStatementContext?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitWhileStatement(ctx: FunParser.WhileStatementContext?): Expression {
+    override fun visitWhileStatement(ctx: FunParser.WhileStatementContext?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitIfStatement(ctx: FunParser.IfStatementContext?): Expression {
+    override fun visitIfStatement(ctx: FunParser.IfStatementContext?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitAssignmentStatement(ctx: FunParser.AssignmentStatementContext?): Expression {
+    override fun visitAssignmentStatement(ctx: FunParser.AssignmentStatementContext?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitReturnStatement(ctx: FunParser.ReturnStatementContext?): Expression {
+    override fun visitReturnStatement(ctx: FunParser.ReturnStatementContext?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visit(tree: ParseTree?): Expression {
+    override fun visit(tree: ParseTree?): AstExpression {
         throw NotAnExpressionException()
     }
 
-    override fun visitErrorNode(node: ErrorNode?): Expression {
+    override fun visitErrorNode(node: ErrorNode?): AstExpression {
         throw NotAnExpressionException()
     }
 }

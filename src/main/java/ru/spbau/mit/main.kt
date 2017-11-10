@@ -1,25 +1,19 @@
 package ru.spbau.mit
 
-import org.antlr.runtime.tree.CommonTree
 import org.antlr.v4.runtime.BufferedTokenStream
 import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.tree.ErrorNode
-import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.runtime.tree.RuleNode
-import org.antlr.v4.runtime.tree.TerminalNode
 import org.apache.commons.io.FileUtils.readFileToString
+import ru.spbau.mit.ast.AstFile
 import ru.spbau.mit.parser.FunLexer
 import ru.spbau.mit.parser.FunParser
-import ru.spbau.mit.parser.FunVisitor
 import java.io.File
 import java.nio.charset.Charset
 
-fun buildAst(sourceCode: String): ru.spbau.mit.ast.File { // todo rename ast nodes
+fun buildAst(sourceCode: String): AstFile {
     val funLexer = FunLexer(CharStreams.fromString(sourceCode))
     val funParser = FunParser(BufferedTokenStream(funLexer))
 
-    return ru.spbau.mit.ast.File.buildFromRuleContext(funParser.file())
+    return AstFile.buildFromRuleContext(funParser.file())
 }
 
 fun main(args: Array<String>) {
