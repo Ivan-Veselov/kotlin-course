@@ -1,5 +1,8 @@
 package ru.spbau.mit
 
+import ru.spbau.mit.ast.FunFunction
+import ru.spbau.mit.ast.Variable
+
 class ContextSymbolOverwritingException(val symbol: String) : Exception()
 
 class ContextUndefinedSymbolException(val symbol: String) : Exception()
@@ -10,7 +13,7 @@ class Context private constructor (
 ) {
     private val variables: MutableMap<String, Variable> = HashMap()
 
-    private val functions: MutableMap<String, Function> = HashMap()
+    private val functions: MutableMap<String, FunFunction> = HashMap()
 
     constructor(builtinsHandler: BuiltinsHandler) : this(null, builtinsHandler)
 
@@ -21,11 +24,6 @@ class Context private constructor (
             parent?.getVariable(name)
         } ?: throw ContextUndefinedSymbolException(name)
 
-    fun getFunction(name: String): Function =
-        functions.getOrElse(name) {
-            parent?.getFunction(name)
-        } ?: throw ContextUndefinedSymbolException(name)
-
     fun addVariable(name: String, variable: Variable) {
         if (variables.containsKey(name)) {
             throw ContextSymbolOverwritingException(name)
@@ -34,7 +32,7 @@ class Context private constructor (
         variables.put(name, variable)
     }
 
-    fun addFunction(name: String, function: Function) {
+    fun addFunction(name: String, function: FunFunction) {
         if (variables.containsKey(name)) {
             throw ContextSymbolOverwritingException(name)
         }
@@ -51,14 +49,14 @@ class Context private constructor (
 
         private val variables: Map<String, Variable> = HashMap(source.variables)
 
-        private val functions: Map<String, Function> = HashMap(source.functions)
+        private val functions: Map<String, FunFunction> = HashMap(source.functions)
 
         fun getVariable(name: String): Variable =
                 variables.getOrElse(name) {
                     parent?.getVariable(name)
                 } ?: throw ContextUndefinedSymbolException(name)
 
-        fun getFunction(name: String): Function =
+        fun getFunction(name: String): FunFunction =
                 functions.getOrElse(name) {
                     parent?.getFunction(name)
                 } ?: throw ContextUndefinedSymbolException(name)

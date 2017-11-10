@@ -6,10 +6,6 @@ import ru.spbau.mit.Context.FixedContext
 
 import ru.spbau.mit.parser.FunParser
 
-// todo: wrapper for Int to convert them to Boolean
-
-// todo: handle exceptions from Context class
-
 data class AstFile(val body: AstBlock) {
     companion object {
         fun buildFromRuleContext(rule: FunParser.FileContext): AstFile {
@@ -61,7 +57,7 @@ data class AstFunctionDefinition(
             throw PrintlnRedefinitionException()
         }
 
-        context.addFunction(name, Function(body, parameterNames, context.fixed()))
+        context.addFunction(name, FunFunction(body, parameterNames, context.fixed()))
         return ExecutionResult(false)
     }
 }
@@ -172,7 +168,7 @@ data class AstFunctionCall(
         functionContext.addFunction(identifier, function)
 
         if (function.argumentNames.size != argumentExpressions.size) {
-            throw WrongNumberOfFunctionArgumentsException()
+            throw WrongNumberOfFunctionArgumentsException(identifier)
         }
 
         val argumentsNumber = function.argumentNames.size

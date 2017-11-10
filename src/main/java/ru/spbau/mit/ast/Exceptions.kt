@@ -1,5 +1,5 @@
 package ru.spbau.mit.ast
 
-class WrongNumberOfFunctionArgumentsException : Exception()
+class WrongNumberOfFunctionArgumentsException(val functionName: String) : Exception()
 
 class PrintlnRedefinitionException : Exception()
