@@ -201,20 +201,6 @@ data class BinaryExpression(
         val leftValue = leftOperand.evaluate(context)
         val rightValue = rightOperand.evaluate(context)
 
-        return when (operationType) {
-            MULT -> leftValue * rightValue
-            DIV -> leftValue / rightValue
-            REM -> leftValue % rightValue
-            PLUS -> leftValue + rightValue
-            MINUS -> leftValue - rightValue
-            LESS -> if (leftValue < rightValue) 1 else 0
-            GRT -> if (leftValue > rightValue) 1 else 0
-            LESS_OR_EQ -> if (leftValue <= rightValue) 1 else 0
-            GRT_OR_EQ -> if (leftValue >= rightValue) 1 else 0
-            EQ -> if (leftValue == rightValue) 1 else 0
-            NEQ -> if (leftValue != rightValue) 1 else 0
-            AND -> if (leftValue != 0 && rightValue != 0) 1 else 0
-            OR -> if (leftValue != 0 || rightValue != 0) 1 else 0
-        }
+        return operationType.apply(leftValue, rightValue)
     }
 }
