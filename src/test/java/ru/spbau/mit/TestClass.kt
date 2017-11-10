@@ -1,6 +1,9 @@
 package ru.spbau.mit
 
 import org.apache.commons.io.FileUtils
+import ru.spbau.mit.ast.AstFile
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import java.nio.charset.Charset
 import java.nio.file.Paths
 
@@ -9,5 +12,14 @@ open class TestClass {
         val path = Paths.get(javaClass.getResource(fileName).toURI())
         val charset: Charset? = null
         return FileUtils.readFileToString(path.toFile(), charset)
+    }
+
+    protected fun executeAst(ast: AstFile) : String {
+        val byteArray = ByteArrayOutputStream()
+        PrintStream(byteArray).use {
+            ast.body.execute(Context(BuiltinsHandler(it)))
+            it.flush()
+            return byteArray.toString()
+        }
     }
 }

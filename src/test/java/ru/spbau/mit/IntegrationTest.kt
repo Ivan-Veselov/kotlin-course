@@ -3,21 +3,13 @@ package ru.spbau.mit
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 
 class IntegrationTest : TestClass() {
     private fun testSourceCode(sourceFileName: String, expectedOutput: String) {
         val sourceCode = getFileContent(sourceFileName)
+        val actualOutput = executeAst(buildAst(sourceCode))
 
-        val byteArray = ByteArrayOutputStream()
-        PrintStream(byteArray).use {
-            buildAst(sourceCode).body.execute(Context(BuiltinsHandler(it)))
-            it.flush()
-            val actualOutput = byteArray.toString()
-
-            assertThat(actualOutput, equalTo(expectedOutput))
-        }
+        assertThat(actualOutput, equalTo(expectedOutput))
     }
 
     @Test
