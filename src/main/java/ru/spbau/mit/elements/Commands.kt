@@ -36,8 +36,9 @@ abstract class StandaloneCommandElement : CommonCommandElement(), StandaloneElem
 
 abstract class BlockCommandElement : CommonCommandElement(), BlockElement {
     override fun renderBegin(stream: PrintStream) {
-        stream.print("\\begin{$name}")
+        stream.print("\\begin")
         renderArguments(stream)
+        stream.print("{$name}")
         stream.println()
     }
 
