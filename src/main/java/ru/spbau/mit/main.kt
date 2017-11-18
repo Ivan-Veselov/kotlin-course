@@ -1,14 +1,20 @@
 package ru.spbau.mit
 
-fun getGreeting(): String {
-    val words = mutableListOf<String>()
-    words.add("Hello,")
-    
-    words.add("world!")
-
-    return words.joinToString(separator = " ")
-}
+import ru.spbau.mit.receivers.LaTeX
 
 fun main(args: Array<String>) {
-    println(getGreeting())
+    LaTeX(System.out) {
+        documentclass("beamer")
+        usepackage("babel", "russian")
+
+        document {
+            frame { // (frameTitle="frametitle", "arg1" to "arg2")
+                itemize {
+                    for (row in 1..10) {
+                        item { + "$row text" }
+                    }
+                }
+            }
+        }
+    }
 }

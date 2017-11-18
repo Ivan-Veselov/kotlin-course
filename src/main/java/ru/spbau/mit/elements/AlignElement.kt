@@ -2,8 +2,8 @@ package ru.spbau.mit.elements
 
 import com.google.common.collect.ImmutableList
 
-class DocumentElement : BlockCommandElement() {
-    override val name: String = "document"
+class AlignElement : BlockCommandElement() {
+    override val name = "align"
 
     override val positionalArguments: ImmutableList<String> = ImmutableList.of()
 
