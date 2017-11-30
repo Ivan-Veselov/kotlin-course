@@ -10,8 +10,7 @@ import java.nio.file.Paths
 open class TestClass {
     protected fun getFileContent(fileName: String) : String {
         val path = Paths.get(javaClass.getResource(fileName).toURI())
-        val charset: Charset? = null
-        return FileUtils.readFileToString(path.toFile(), charset)
+        return FileUtils.readFileToString(path.toFile(), null as Charset?)
     }
 
     protected fun executeAst(ast: AstFile) : String {

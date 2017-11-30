@@ -6,7 +6,7 @@ import ru.spbau.mit.Context.FixedContext
 
 import ru.spbau.mit.parser.FunParser
 
-data class AstFile(val body: AstBlock) {
+class AstFile(val body: AstBlock) {
     companion object {
         fun buildFromRuleContext(rule: FunParser.FileContext): AstFile {
             return AstFile(AstBlock.buildFromRuleContext(rule.block()))
@@ -18,7 +18,7 @@ abstract class ExecutableAstNode {
     abstract fun execute(context: Context): ExecutionResult
 }
 
-data class AstBlock(private val statements: ImmutableList<AstStatement>) : ExecutableAstNode() {
+class AstBlock(private val statements: ImmutableList<AstStatement>) : ExecutableAstNode() {
     override fun execute(context: Context): ExecutionResult {
         for (statement in statements) {
             val result = statement.execute(context)
@@ -47,7 +47,7 @@ abstract class AstStatement : ExecutableAstNode() {
     }
 }
 
-data class AstFunctionDefinition(
+class AstFunctionDefinition(
     private val name: String,
     private val parameterNames: ImmutableList<String>,
     private val body: AstBlock
@@ -62,17 +62,14 @@ data class AstFunctionDefinition(
     }
 }
 
-data class AstVariableDefinition(
+class AstVariableDefinition(
     private val name: String,
     private val initializingExpression: AstExpression?
 ) : AstStatement() {
     override fun execute(context: Context): ExecutionResult {
-        var initialValue = 0
-        if (initializingExpression != null) {
-            initialValue = initializingExpression.evaluate(context.fixed())
-        }
-
+        val initialValue = initializingExpression?.evaluate(context.fixed()) ?: 0
         context.addVariable(name, Variable(initialValue))
+
         return ExecutionResult(false)
     }
 }
@@ -92,7 +89,7 @@ abstract class AstExpression : AstStatement() {
     }
 }
 
-data class AstWhile(
+class AstWhile(
     private val condition: AstExpression,
     private val body: AstBlock
 ) : AstStatement() {
@@ -108,10 +105,10 @@ data class AstWhile(
     }
 }
 
-data class AstIf(
-        private val condition: AstExpression,
-        private val thenBody: AstBlock,
-        private val elseBody: AstBlock?
+class AstIf(
+    private val condition: AstExpression,
+    private val thenBody: AstBlock,
+    private val elseBody: AstBlock?
 ) : AstStatement() {
     override fun execute(context: Context): ExecutionResult {
         if (condition.evaluate(context.fixed()) != 0)  {
@@ -126,7 +123,7 @@ data class AstIf(
     }
 }
 
-data class AstAssignment(
+class AstAssignment(
     private val identifier: String,
     private val expression: AstExpression
 ) : AstStatement() {
@@ -138,19 +135,19 @@ data class AstAssignment(
     }
 }
 
-data class AstReturn(private val expression: AstExpression) : AstStatement() {
+class AstReturn(private val expression: AstExpression) : AstStatement() {
     override fun execute(context: Context): ExecutionResult {
         return ExecutionResult(true, expression.evaluate(context.fixed()))
     }
 }
 
-data class AstVariableAccess(private val identifier: String) : AstExpression() {
+class AstVariableAccess(private val identifier: String) : AstExpression() {
     override fun evaluate(context: FixedContext): Int {
         return context.getVariable(identifier).data
     }
 }
 
-data class AstFunctionCall(
+class AstFunctionCall(
     private val identifier: String,
     private val argumentExpressions: ImmutableList<AstExpression>
 ) : AstExpression() {
@@ -172,10 +169,10 @@ data class AstFunctionCall(
         }
 
         val argumentsNumber = function.argumentNames.size
-        for (i in 0 until argumentsNumber) {
+        repeat(argumentsNumber) {
             functionContext.addVariable(
-                    function.argumentNames[i],
-                    Variable(argumentExpressions[i].evaluate(context))
+                    function.argumentNames[it],
+                    Variable(argumentExpressions[it].evaluate(context))
             )
         }
 
@@ -184,13 +181,13 @@ data class AstFunctionCall(
     }
 }
 
-data class AstLiteral(private val value: Int) : AstExpression() {
+class AstLiteral(private val value: Int) : AstExpression() {
     override fun evaluate(context: FixedContext): Int {
         return value
     }
 }
 
-data class AstBinaryExpression(
+class AstBinaryExpression(
         private val operationType: BinaryOperationType,
         private val leftOperand: AstExpression,
         private val rightOperand: AstExpression
@@ -199,6 +196,6 @@ data class AstBinaryExpression(
         val leftValue = leftOperand.evaluate(context)
         val rightValue = rightOperand.evaluate(context)
 
-        return operationType.apply(leftValue, rightValue)
+        return operationType.evaluate(leftValue, rightValue)
     }
 }
