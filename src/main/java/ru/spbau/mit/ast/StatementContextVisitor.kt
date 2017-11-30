@@ -1,6 +1,5 @@
 package ru.spbau.mit.ast
 
-import com.google.common.collect.ImmutableList
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
@@ -16,7 +15,7 @@ object StatementContextVisitor : FunVisitor<AstStatement> {
     ): AstStatement {
         return AstFunctionDefinition(
             ctx.functionName.text,
-            ImmutableList.copyOf(ctx.parameterNames.map { it.text }),
+            ctx.parameterNames.map { it.text },
             AstBlock.buildFromRuleContext(ctx.functionBody)
         )
     }

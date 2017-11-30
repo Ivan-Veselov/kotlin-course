@@ -1,10 +1,11 @@
 package ru.spbau.mit.ast
 
-import com.google.common.collect.ImmutableList
 import ru.spbau.mit.Context
 
-data class FunFunction(
+class FunFunction(
     val body: AstBlock,
-    val argumentNames: ImmutableList<String>,
+    argumentNames: List<String>,
     val initialContext: Context.FixedContext
-)
+) {
+    val argumentNames: List<String> = argumentNames.toList()
+}

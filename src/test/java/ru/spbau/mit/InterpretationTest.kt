@@ -1,6 +1,5 @@
 package ru.spbau.mit
 
-import com.google.common.collect.ImmutableList
 import org.hamcrest.CoreMatchers
 import org.junit.Assert.*
 import org.junit.Test
@@ -31,7 +30,7 @@ class InterpretationTest : TestClass() {
                     }
 
                     fun buildThenBody(): AstBlock {
-                        return AstBlock(ImmutableList.of(
+                        return AstBlock(listOf(
                             AstReturn(AstVariableAccess(firstArgumentName))
                         ))
                     }
@@ -48,14 +47,14 @@ class InterpretationTest : TestClass() {
 
                             return AstFunctionCall(
                                 functionName,
-                                ImmutableList.of(
+                                listOf(
                                     AstVariableAccess(secondArgumentName),
                                     buildSecondArgument()
                                 )
                             )
                         }
 
-                        return AstBlock(ImmutableList.of(
+                        return AstBlock(listOf(
                             AstReturn(buildFunctionCall())
                         ))
                     }
@@ -63,24 +62,24 @@ class InterpretationTest : TestClass() {
                     return AstIf(buildCondition(), buildThenBody(), buildElseBody())
                 }
 
-                return AstBlock(ImmutableList.of(buildIf()))
+                return AstBlock(listOf(buildIf()))
             }
 
             return AstFunctionDefinition(
                 functionName,
-                ImmutableList.of(firstArgumentName, secondArgumentName),
+                listOf(firstArgumentName, secondArgumentName),
                 buildFunctionBody()
             )
         }
 
         fun buildFunctionCall() : AstFunctionCall {
-            return AstFunctionCall(BuiltinsHandler.printlnName, ImmutableList.of(AstFunctionCall(
+            return AstFunctionCall(BuiltinsHandler.printlnName, listOf(AstFunctionCall(
                 functionName,
-                ImmutableList.of(AstLiteral(24157817), AstLiteral(39088169))
+                listOf(AstLiteral(24157817), AstLiteral(39088169))
             )))
         }
 
-        val ast = AstFile(AstBlock(ImmutableList.of(
+        val ast = AstFile(AstBlock(listOf(
             buildFunctionDefinition(),
             buildFunctionCall()
         )))

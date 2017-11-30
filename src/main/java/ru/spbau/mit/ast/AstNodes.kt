@@ -1,6 +1,5 @@
 package ru.spbau.mit.ast
 
-import com.google.common.collect.ImmutableList
 import ru.spbau.mit.*
 import ru.spbau.mit.Context.FixedContext
 
@@ -18,7 +17,9 @@ abstract class ExecutableAstNode {
     abstract fun execute(context: Context): ExecutionResult
 }
 
-class AstBlock(private val statements: ImmutableList<AstStatement>) : ExecutableAstNode() {
+class AstBlock(statements: List<AstStatement>) : ExecutableAstNode() {
+    private val statements = statements.toList()
+
     override fun execute(context: Context): ExecutionResult {
         for (statement in statements) {
             val result = statement.execute(context)
@@ -32,9 +33,9 @@ class AstBlock(private val statements: ImmutableList<AstStatement>) : Executable
 
     companion object {
         fun buildFromRuleContext(rule: FunParser.BlockContext): AstBlock {
-            return AstBlock(ImmutableList.copyOf(
+            return AstBlock(
                 rule.statements.map { AstStatement.buildFromRuleContext(it) }
-            ))
+            )
         }
     }
 }
@@ -49,9 +50,11 @@ abstract class AstStatement : ExecutableAstNode() {
 
 class AstFunctionDefinition(
     private val name: String,
-    private val parameterNames: ImmutableList<String>,
+    parameterNames: List<String>,
     private val body: AstBlock
 ) : AstStatement() {
+    private val parameterNames: List<String> = parameterNames.toList()
+
     override fun execute(context: Context): ExecutionResult {
         if (name == BuiltinsHandler.printlnName) {
             throw PrintlnRedefinitionException()
@@ -149,8 +152,10 @@ class AstVariableAccess(private val identifier: String) : AstExpression() {
 
 class AstFunctionCall(
     private val identifier: String,
-    private val argumentExpressions: ImmutableList<AstExpression>
+    argumentExpressions: List<AstExpression>
 ) : AstExpression() {
+    private val argumentExpressions: List<AstExpression> = argumentExpressions.toList()
+
     override fun evaluate(context: FixedContext): Int {
         val defaultReturnValue = 0
 

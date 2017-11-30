@@ -1,6 +1,5 @@
 package ru.spbau.mit.ast
 
-import com.google.common.collect.ImmutableList
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
@@ -30,7 +29,7 @@ object ExpressionContextVisitor : FunVisitor<AstExpression> {
     ): AstExpression {
         return AstFunctionCall(
             ctx.IDENTIFIER().text,
-            ImmutableList.copyOf(ctx.arguments.map { AstExpression.buildFromRuleContext(it) })
+            ctx.arguments.map { AstExpression.buildFromRuleContext(it) }
         )
     }
 
