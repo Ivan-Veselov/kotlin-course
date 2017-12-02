@@ -33,9 +33,7 @@ abstract class ExecutableAstNode {
     abstract fun execute(context: Context): ExecutionResult
 }
 
-class AstBlock(statements: List<AstStatement>) : ExecutableAstNode() {
-    private val statements = statements.toList()
-
+class AstBlock(private val statements: List<AstStatement>) : ExecutableAstNode() {
     override fun toString(): String {
         return "AstBlock(statements=$statements)"
     }
@@ -56,10 +54,9 @@ abstract class AstStatement : ExecutableAstNode()
 
 class AstFunctionDefinition(
     private val name: String,
-    parameterNames: List<String>,
+    private val parameterNames: List<String>,
     private val body: AstBlock
 ) : AstStatement() {
-    private val parameterNames: List<String> = parameterNames.toList()
 
     override fun toString(): String {
         return "AstFunctionDefinition(name=$name, parameterNames=$parameterNames, body=$body)"
@@ -180,9 +177,8 @@ class AstVariableAccess(private val identifier: String) : AstExpression() {
 
 class AstFunctionCall(
     private val identifier: String,
-    argumentExpressions: List<AstExpression>
+    private val argumentExpressions: List<AstExpression>
 ) : AstExpression() {
-    private val argumentExpressions: List<AstExpression> = argumentExpressions.toList()
 
     override fun toString(): String {
         return "AstFunctionCall(identifier=$identifier, argumentExpressions=$argumentExpressions)"
