@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils.readFileToString
 import ru.spbau.mit.ast.AstFile
 import ru.spbau.mit.ast.PrintlnRedefinitionException
 import ru.spbau.mit.ast.WrongNumberOfFunctionArgumentsException
+import ru.spbau.mit.ast.buildFromRuleContext
 import ru.spbau.mit.parser.FunLexer
 import ru.spbau.mit.parser.FunParser
 import java.io.File
@@ -21,7 +22,7 @@ fun buildAst(sourceCode: String): AstFile {
         throw FailedToParseException()
     }
 
-    return AstFile.buildFromRuleContext(funParser.file())
+    return buildFromRuleContext(funParser.file())
 }
 
 fun main(args: Array<String>) {

@@ -5,15 +5,27 @@ import ru.spbau.mit.Context.FixedContext
 
 import ru.spbau.mit.parser.FunParser
 
+fun buildFromRuleContext(rule: FunParser.FileContext): AstFile {
+    return AstFile(buildFromRuleContext(rule.block()))
+}
+
+fun buildFromRuleContext(rule: FunParser.BlockContext): AstBlock {
+    return AstBlock(
+        rule.statements.map { buildFromRuleContext(it) }
+    )
+}
+
+fun buildFromRuleContext(rule: FunParser.StatementContext) : AstStatement {
+    return rule.accept(StatementContextVisitor)
+}
+
+fun buildFromRuleContext(rule: FunParser.ExpressionContext) : AstExpression {
+    return rule.accept(ExpressionContextVisitor)
+}
+
 class AstFile(val body: AstBlock) {
     override fun toString(): String {
         return "AstFile(body=$body)"
-    }
-
-    companion object {
-        fun buildFromRuleContext(rule: FunParser.FileContext): AstFile {
-            return AstFile(AstBlock.buildFromRuleContext(rule.block()))
-        }
     }
 }
 
@@ -38,23 +50,9 @@ class AstBlock(statements: List<AstStatement>) : ExecutableAstNode() {
 
         return ExecutionResult(false)
     }
-
-    companion object {
-        fun buildFromRuleContext(rule: FunParser.BlockContext): AstBlock {
-            return AstBlock(
-                rule.statements.map { AstStatement.buildFromRuleContext(it) }
-            )
-        }
-    }
 }
 
-abstract class AstStatement : ExecutableAstNode() {
-    companion object {
-        fun buildFromRuleContext(rule: FunParser.StatementContext) : AstStatement {
-            return rule.accept(StatementContextVisitor)
-        }
-    }
-}
+abstract class AstStatement : ExecutableAstNode()
 
 class AstFunctionDefinition(
     private val name: String,
@@ -99,12 +97,6 @@ abstract class AstExpression : AstStatement() {
     override fun execute(context: Context): ExecutionResult {
         evaluate(context.fixed())
         return ExecutionResult(false)
-    }
-
-    companion object {
-        fun buildFromRuleContext(rule: FunParser.ExpressionContext) : AstExpression {
-            return rule.accept(ExpressionContextVisitor)
-        }
     }
 }
 

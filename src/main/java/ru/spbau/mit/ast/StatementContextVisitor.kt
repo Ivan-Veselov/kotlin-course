@@ -16,16 +16,16 @@ object StatementContextVisitor : FunVisitor<AstStatement> {
         return AstFunctionDefinition(
             ctx.functionName.text,
             ctx.parameterNames.map { it.text },
-            AstBlock.buildFromRuleContext(ctx.functionBody)
+            buildFromRuleContext(ctx.functionBody)
         )
     }
 
     override fun visitExpressionStatement(ctx: FunParser.ExpressionStatementContext): AstStatement {
-        return AstExpression.buildFromRuleContext(ctx.expression())
+        return buildFromRuleContext(ctx.expression())
     }
 
     override fun visitReturnStatement(ctx: FunParser.ReturnStatementContext): AstStatement {
-        return AstReturn(AstExpression.buildFromRuleContext(ctx.expression()))
+        return AstReturn(buildFromRuleContext(ctx.expression()))
     }
 
     override fun visitVariableDefinitionStatement(
@@ -33,7 +33,7 @@ object StatementContextVisitor : FunVisitor<AstStatement> {
     ): AstStatement {
         val initializingExpression =
             if (ctx.initialValueExpression != null) {
-                AstExpression.buildFromRuleContext(ctx.initialValueExpression)
+                buildFromRuleContext(ctx.initialValueExpression)
             } else {
                 null
             }
@@ -46,19 +46,19 @@ object StatementContextVisitor : FunVisitor<AstStatement> {
 
     override fun visitWhileStatement(ctx: FunParser.WhileStatementContext): AstStatement {
         return AstWhile(
-            AstExpression.buildFromRuleContext(ctx.condition),
-            AstBlock.buildFromRuleContext(ctx.body)
+            buildFromRuleContext(ctx.condition),
+            buildFromRuleContext(ctx.body)
         )
     }
 
     override fun visitIfStatement(ctx: FunParser.IfStatementContext): AstStatement {
         val elseBody =
-            if (ctx.elseBody != null) AstBlock.buildFromRuleContext(ctx.elseBody)
+            if (ctx.elseBody != null) buildFromRuleContext(ctx.elseBody)
             else null
 
         return AstIf(
-            AstExpression.buildFromRuleContext(ctx.condition),
-            AstBlock.buildFromRuleContext(ctx.thenBody),
+            buildFromRuleContext(ctx.condition),
+            buildFromRuleContext(ctx.thenBody),
             elseBody
         )
     }
@@ -66,7 +66,7 @@ object StatementContextVisitor : FunVisitor<AstStatement> {
     override fun visitAssignmentStatement(ctx: FunParser.AssignmentStatementContext): AstStatement {
         return AstAssignment(
             ctx.IDENTIFIER().text,
-            AstExpression.buildFromRuleContext(ctx.expression())
+            buildFromRuleContext(ctx.expression())
         )
     }
 

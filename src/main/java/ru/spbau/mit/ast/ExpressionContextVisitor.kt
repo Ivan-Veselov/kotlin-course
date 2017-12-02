@@ -29,7 +29,7 @@ object ExpressionContextVisitor : FunVisitor<AstExpression> {
     ): AstExpression {
         return AstFunctionCall(
             ctx.IDENTIFIER().text,
-            ctx.arguments.map { AstExpression.buildFromRuleContext(it) }
+            ctx.arguments.map { buildFromRuleContext(it) }
         )
     }
 
@@ -44,8 +44,8 @@ object ExpressionContextVisitor : FunVisitor<AstExpression> {
             BinaryOperationType.fromToken(
                 ctx.operation
             ) ?: throw UnknownOperationLiteral(),
-            AstExpression.buildFromRuleContext(ctx.leftOperand),
-            AstExpression.buildFromRuleContext(ctx.rightOperand)
+            buildFromRuleContext(ctx.leftOperand),
+            buildFromRuleContext(ctx.rightOperand)
         )
     }
 
