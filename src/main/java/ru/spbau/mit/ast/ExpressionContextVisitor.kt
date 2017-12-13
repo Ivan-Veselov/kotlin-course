@@ -11,17 +11,27 @@ class NotAnExpressionException : Exception()
 
 class UnknownOperationLiteral : Exception()
 
-object ExpressionContextVisitor : FunVisitor<AstExpression> {
+class ExpressionContextVisitor(
+    private val listener: ExecutionListener?
+) : FunVisitor<AstExpression> {
     override fun visitLiteralExpression(
         ctx: FunParser.LiteralExpressionContext
     ): AstExpression {
-        return AstLiteral(Integer.parseInt(ctx.LITERAL().text))
+        return AstLiteral(
+            Integer.parseInt(ctx.LITERAL().text),
+            ctx.start.line,
+            listener
+        )
     }
 
     override fun visitVariableAccessExpression(
         ctx: FunParser.VariableAccessExpressionContext
     ): AstExpression {
-        return AstVariableAccess(ctx.IDENTIFIER().text)
+        return AstVariableAccess(
+            ctx.IDENTIFIER().text,
+            ctx.start.line,
+            listener
+        )
     }
 
     override fun visitFunctionCallExpression(
@@ -29,7 +39,9 @@ object ExpressionContextVisitor : FunVisitor<AstExpression> {
     ): AstExpression {
         return AstFunctionCall(
             ctx.IDENTIFIER().text,
-            ctx.arguments.map { buildFromRuleContext(it) }
+            ctx.arguments.map { buildFromRuleContext(it, listener) },
+            ctx.start.line,
+            listener
         )
     }
 
@@ -44,8 +56,10 @@ object ExpressionContextVisitor : FunVisitor<AstExpression> {
             BinaryOperationType.fromToken(
                 ctx.operation
             ) ?: throw UnknownOperationLiteral(),
-            buildFromRuleContext(ctx.leftOperand),
-            buildFromRuleContext(ctx.rightOperand)
+            buildFromRuleContext(ctx.leftOperand, listener),
+            buildFromRuleContext(ctx.rightOperand, listener),
+            ctx.start.line,
+            listener
         )
     }
 

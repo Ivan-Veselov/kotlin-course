@@ -24,14 +24,20 @@ class InterpretationTest : TestClass() {
                     fun buildCondition(): AstExpression {
                         return AstBinaryExpression(
                             BinaryOperationType.EQ,
-                            AstVariableAccess(secondArgumentName),
-                            AstLiteral(0)
+                            AstVariableAccess(secondArgumentName, 0, null),
+                            AstLiteral(0, 0, null),
+                            0,
+                            null
                         )
                     }
 
                     fun buildThenBody(): AstBlock {
                         return AstBlock(listOf(
-                            AstReturn(AstVariableAccess(firstArgumentName))
+                            AstReturn(
+                                AstVariableAccess(firstArgumentName, 0, null),
+                                0,
+                                null
+                            )
                         ))
                     }
 
@@ -40,26 +46,35 @@ class InterpretationTest : TestClass() {
                             fun buildSecondArgument() : AstExpression {
                                 return AstBinaryExpression(
                                     BinaryOperationType.REM,
-                                    AstVariableAccess(firstArgumentName),
-                                    AstVariableAccess(secondArgumentName)
+                                    AstVariableAccess(firstArgumentName, 0, null),
+                                    AstVariableAccess(secondArgumentName, 0, null),
+                                    0,
+                                    null
                                 )
                             }
 
                             return AstFunctionCall(
                                 functionName,
                                 listOf(
-                                    AstVariableAccess(secondArgumentName),
+                                    AstVariableAccess(secondArgumentName, 0, null),
                                     buildSecondArgument()
-                                )
+                                ),
+                                0,
+                                null
                             )
                         }
 
                         return AstBlock(listOf(
-                            AstReturn(buildFunctionCall())
+                            AstReturn(buildFunctionCall(), 0, null)
                         ))
                     }
 
-                    return AstIf(buildCondition(), buildThenBody(), buildElseBody())
+                    return AstIf(
+                        buildCondition(),
+                        buildThenBody(),
+                        buildElseBody(),
+                        0,
+                        null)
                 }
 
                 return AstBlock(listOf(buildIf()))
@@ -68,15 +83,22 @@ class InterpretationTest : TestClass() {
             return AstFunctionDefinition(
                 functionName,
                 listOf(firstArgumentName, secondArgumentName),
-                buildFunctionBody()
+                buildFunctionBody(),
+                0,
+                null
             )
         }
 
         fun buildFunctionCall() : AstFunctionCall {
             return AstFunctionCall(BuiltinsHandler.printlnName, listOf(AstFunctionCall(
                 functionName,
-                listOf(AstLiteral(24157817), AstLiteral(39088169))
-            )))
+                listOf(
+                    AstLiteral(24157817, 0, null),
+                    AstLiteral(39088169, 0, null)
+                ),
+                0,
+                null
+            )), 0, null)
         }
 
         val ast = AstFile(AstBlock(listOf(
