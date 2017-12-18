@@ -10,4 +10,6 @@ class CustomCommandElement(
 
     override val namedArguments: ImmutableList<Pair<String, String>> =
         ImmutableList.copyOf(mutableNamedArguments)
+
+    override val firstCommands: ImmutableList<StandaloneCommandElement> = ImmutableList.of()
 }

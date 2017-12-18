@@ -35,11 +35,17 @@ abstract class StandaloneCommandElement : CommonCommandElement(), StandaloneElem
 }
 
 abstract class BlockCommandElement : CommonCommandElement(), BlockElement {
+    protected abstract val firstCommands: ImmutableList<StandaloneCommandElement>
+
     override fun renderBegin(stream: PrintStream) {
         stream.print("\\begin")
         renderArguments(stream)
         stream.print("{$name}")
         stream.println()
+
+        firstCommands.forEach {
+            it.render(stream)
+        }
     }
 
     override fun renderEnd(stream: PrintStream) {

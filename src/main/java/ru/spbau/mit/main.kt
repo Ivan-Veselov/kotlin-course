@@ -8,7 +8,7 @@ fun main(args: Array<String>) {
         usepackage("babel", "russian")
 
         document {
-            frame { // (frameTitle="frametitle", "arg1" to "arg2")
+            frame("frametitle") {
                 itemize {
                     for (row in 1..10) {
                         item { + "$row text" }

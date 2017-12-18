@@ -22,8 +22,8 @@ interface HasUsePackage : Receiver {
 }
 
 interface HasFrame : Receiver {
-    fun frame(body: Frame.() -> Unit) {
-        render(Frame(stream), FrameElement(), body)
+    fun frame(frameTitle: String, body: Frame.() -> Unit) {
+        render(Frame(stream), FrameElement(frameTitle), body)
     }
 }
 
@@ -92,9 +92,9 @@ private fun <T : Receiver> render(
 }
 
 private fun <T : Receiver> render(
-        receiver: T,
-        element: ElementWithHeading,
-        body: T.() -> Unit
+    receiver: T,
+    element: ElementWithHeading,
+    body: T.() -> Unit
 ) {
     element.renderHeading(receiver.stream)
     receiver.body()

@@ -53,6 +53,7 @@ class Test {
             """
             |\begin{document}
                 |\begin{frame}
+                    |\frametitle{frametitle}
                     |Text
                 |\end{frame}
             |\end{document}
@@ -61,7 +62,7 @@ class Test {
 
         test(expected) {
             document {
-                frame {
+                frame("frametitle") {
                     + "Text"
                 }
             }
@@ -74,6 +75,7 @@ class Test {
             """
             |\begin{document}
                 |\begin{frame}
+                    |\frametitle{title}
                     |\begin{enumerate}
                         |\item
                         |text 1
@@ -87,7 +89,7 @@ class Test {
 
         test(expected) {
             document {
-                frame {
+                frame("title") {
                     enumerate {
                         item {
                             + "text 1"
@@ -108,6 +110,7 @@ class Test {
             """
             |\begin{document}
                 |\begin{frame}
+                    |\frametitle{title}
                     |\begin{itemize}
                         |\item
                         |text 1
@@ -121,7 +124,7 @@ class Test {
 
         test(expected) {
             document {
-                frame {
+                frame("title") {
                     itemize {
                         item {
                             + "text 1"
@@ -142,6 +145,7 @@ class Test {
             """
             |\begin{document}
                 |\begin{frame}
+                    |\frametitle{alpha letter}
                     |\begin{math}
                         |\alpha
                     |\end{math}
@@ -152,7 +156,7 @@ class Test {
 
         test(expected) {
             document {
-                frame {
+                frame("alpha letter") {
                     math {
                         + """\alpha"""
                     }
@@ -167,6 +171,7 @@ class Test {
             """
             |\begin{document}
                 |\begin{frame}
+                    |\frametitle{alignment test}
                     |\begin{align}
                         |\alpha
                     |\end{align}
@@ -177,7 +182,7 @@ class Test {
 
         test(expected) {
             document {
-                frame {
+                frame("alignment test") {
                     align {
                         + """\alpha"""
                     }
@@ -192,6 +197,7 @@ class Test {
             """
             |\begin{document}
                 |\begin{frame}
+                    |\frametitle{custom}
                     |\begin[arg1=val1,arg2=val2]{name}
                         |Text
                     |\end{name}
@@ -202,7 +208,7 @@ class Test {
 
         test(expected) {
             document {
-                frame {
+                frame("custom") {
                     custom("name", "arg1" to "val1", "arg2" to "val2") {
                         + "Text"
                     }
