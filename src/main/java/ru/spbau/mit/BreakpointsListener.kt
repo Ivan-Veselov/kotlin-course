@@ -51,13 +51,9 @@ interface Breakpoint {
 }
 
 class SimpleBreakpoint : Breakpoint {
-    override fun condition(context: Context.FixedContext): Boolean {
-        return true
-    }
+    override fun condition(context: Context.FixedContext): Boolean = true
 
-    override fun toString(): String {
-        return "unconditional breakpoint"
-    }
+    override fun toString(): String = "unconditional breakpoint"
 }
 
 class ConditionalBreakpoint(
@@ -71,7 +67,5 @@ class ConditionalBreakpoint(
         return value == 1
     }
 
-    override fun toString(): String {
-        return "conditional breakpoint"
-    }
+    override fun toString(): String = "conditional breakpoint"
 }
