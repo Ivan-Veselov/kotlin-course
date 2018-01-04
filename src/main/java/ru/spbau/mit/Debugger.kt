@@ -3,6 +3,7 @@ package ru.spbau.mit
 import kotlinx.coroutines.experimental.runBlocking
 import ru.spbau.mit.ast.AstExpression
 import ru.spbau.mit.ast.AstFile
+import ru.spbau.mit.ast.AstNodesExecutor
 import java.io.PrintStream
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.CoroutineContext
@@ -14,7 +15,7 @@ class DebuggerIsNotRunningException : Exception()
 class Debugger(sourceCode: String, private val stream: PrintStream) {
     private val listener: BreakpointsListener = BreakpointsListener()
 
-    private val file: AstFile = buildAst(sourceCode, listener)
+    private val file: AstFile = buildAst(sourceCode)
 
     private var isRunning: Boolean = false
 
@@ -38,7 +39,7 @@ class Debugger(sourceCode: String, private val stream: PrintStream) {
         isRunning = true
 
         val action: suspend () -> Unit = {
-            file.execute(Context(BuiltinsHandler(stream)))
+            file.accept(AstNodesExecutor(Context(BuiltinsHandler(stream)), listener))
         }
 
         action.startCoroutine(object : Continuation<Unit> {
@@ -56,7 +57,7 @@ class Debugger(sourceCode: String, private val stream: PrintStream) {
         }
 
         val value = runBlocking {
-            expression.evaluate(listener.currentContext()!!)
+            expression.evaluate(listener.currentContext()!!, null)
         }
 
         stream.println(value)

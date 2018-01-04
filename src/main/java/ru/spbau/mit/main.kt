@@ -12,7 +12,7 @@ import java.io.InputStreamReader
 
 class FailedToParseException : Exception()
 
-fun buildAst(sourceCode: String, listener: ExecutionListener?): AstFile {
+fun buildAst(sourceCode: String): AstFile {
     val funLexer = FunLexer(CharStreams.fromString(sourceCode))
     val funParser = FunParser(BufferedTokenStream(funLexer))
 
@@ -20,7 +20,7 @@ fun buildAst(sourceCode: String, listener: ExecutionListener?): AstFile {
         throw FailedToParseException()
     }
 
-    return buildFromRuleContext(funParser.file(), listener)
+    return buildFromRuleContext(funParser.file())
 }
 
 fun main(args: Array<String>) {

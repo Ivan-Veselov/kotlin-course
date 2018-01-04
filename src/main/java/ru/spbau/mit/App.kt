@@ -98,7 +98,7 @@ class App(
 
                 debuggerCopy.addConditionalBreakpoint(
                         tokens[1].toInt(),
-                        buildExpression(tokens[2], null)
+                        buildExpression(tokens[2])
                 )
             }
 
@@ -141,7 +141,7 @@ class App(
                     throw NoRunningProgramException()
                 }
 
-                debuggerCopy.evaluateExpression(buildExpression(tokens[1], null))
+                debuggerCopy.evaluateExpression(buildExpression(tokens[1]))
             }
 
             "stop" -> {
@@ -168,8 +168,8 @@ class App(
         return FileUtils.readFileToString(Paths.get(filePath).toFile(), null as Charset?)
     }
 
-    private fun buildExpression(sourceCode: String, listener: ExecutionListener?): AstExpression {
-        val file = buildAst(sourceCode, listener)
+    private fun buildExpression(sourceCode: String): AstExpression {
+        val file = buildAst(sourceCode)
         val statements = file.body.statements
 
         if (statements.size != 1) {

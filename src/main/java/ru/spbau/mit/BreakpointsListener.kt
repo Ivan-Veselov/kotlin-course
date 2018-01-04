@@ -61,7 +61,7 @@ class ConditionalBreakpoint(
 ) : Breakpoint {
     override fun condition(context: Context.FixedContext): Boolean {
         val value = runBlocking {
-            expression.evaluate(context)
+            expression.evaluate(context, null)
         }
 
         return value == 1

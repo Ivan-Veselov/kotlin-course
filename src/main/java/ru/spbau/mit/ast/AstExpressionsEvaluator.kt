@@ -4,7 +4,10 @@ import ru.spbau.mit.BuiltinsHandler
 import ru.spbau.mit.Context
 import ru.spbau.mit.ast.visitors.AstExpressionsVisitor
 
-class AstExpressionsEvaluator(val context: Context.FixedContext) : AstExpressionsVisitor<Int> {
+class AstExpressionsEvaluator(
+    private val context: Context.FixedContext,
+    private val listener: ExecutionListener?
+) : AstExpressionsVisitor<Int> {
     override suspend fun visit(node: AstVariableAccess): Int {
         return context.getVariable(node.identifier).data
     }
@@ -34,7 +37,7 @@ class AstExpressionsEvaluator(val context: Context.FixedContext) : AstExpression
             )
         }
 
-        val result = function.body.execute(functionContext)
+        val result = function.body.accept(AstNodesExecutor(functionContext, listener))
         return if (result.unwind) result.value else defaultReturnValue
     }
 

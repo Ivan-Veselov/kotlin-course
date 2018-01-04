@@ -7,7 +7,7 @@ import org.junit.Test
 class IntegrationTest : TestClass() {
     private fun testSourceCode(sourceFileName: String, expectedOutput: String) {
         val sourceCode = getFileContent(sourceFileName)
-        val actualOutput = executeAst(buildAst(sourceCode, null))
+        val actualOutput = executeAst(buildAst(sourceCode))
 
         assertThat(actualOutput, equalTo(expectedOutput))
     }

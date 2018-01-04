@@ -9,30 +9,26 @@ import ru.spbau.mit.parser.FunVisitor
 
 class NotAStatementException : Exception()
 
-class StatementContextVisitor(
-    private val listener: ExecutionListener?
-) : FunVisitor<AstStatement> {
+class StatementContextVisitor : FunVisitor<AstStatement> {
     override fun visitFunctionDefinitionStatement(
         ctx: FunParser.FunctionDefinitionStatementContext
     ): AstStatement {
         return AstFunctionDefinition(
             ctx.functionName.text,
             ctx.parameterNames.map { it.text },
-            buildFromRuleContext(ctx.functionBody, listener),
-            ctx.start.line,
-            listener
+            buildFromRuleContext(ctx.functionBody),
+            ctx.start.line
         )
     }
 
     override fun visitExpressionStatement(ctx: FunParser.ExpressionStatementContext): AstStatement {
-        return buildFromRuleContext(ctx.expression(), listener)
+        return buildFromRuleContext(ctx.expression())
     }
 
     override fun visitReturnStatement(ctx: FunParser.ReturnStatementContext): AstStatement {
         return AstReturn(
-            buildFromRuleContext(ctx.expression(), listener),
-            ctx.start.line,
-            listener
+            buildFromRuleContext(ctx.expression()),
+            ctx.start.line
         )
     }
 
@@ -41,7 +37,7 @@ class StatementContextVisitor(
     ): AstStatement {
         val initializingExpression =
             if (ctx.initialValueExpression != null) {
-                buildFromRuleContext(ctx.initialValueExpression, listener)
+                buildFromRuleContext(ctx.initialValueExpression)
             } else {
                 null
             }
@@ -49,40 +45,36 @@ class StatementContextVisitor(
         return AstVariableDefinition(
             ctx.variableName.text,
             initializingExpression,
-            ctx.start.line,
-            listener
+            ctx.start.line
         )
     }
 
     override fun visitWhileStatement(ctx: FunParser.WhileStatementContext): AstStatement {
         return AstWhile(
-            buildFromRuleContext(ctx.condition, listener),
-            buildFromRuleContext(ctx.body, listener),
-            ctx.start.line,
-            listener
+            buildFromRuleContext(ctx.condition),
+            buildFromRuleContext(ctx.body),
+            ctx.start.line
         )
     }
 
     override fun visitIfStatement(ctx: FunParser.IfStatementContext): AstStatement {
         val elseBody =
-            if (ctx.elseBody != null) buildFromRuleContext(ctx.elseBody, listener)
+            if (ctx.elseBody != null) buildFromRuleContext(ctx.elseBody)
             else null
 
         return AstIf(
-            buildFromRuleContext(ctx.condition, listener),
-            buildFromRuleContext(ctx.thenBody, listener),
+            buildFromRuleContext(ctx.condition),
+            buildFromRuleContext(ctx.thenBody),
             elseBody,
-            ctx.start.line,
-            listener
+            ctx.start.line
         )
     }
 
     override fun visitAssignmentStatement(ctx: FunParser.AssignmentStatementContext): AstStatement {
         return AstAssignment(
             ctx.IDENTIFIER().text,
-            buildFromRuleContext(ctx.expression(), listener),
-            ctx.start.line,
-            listener
+            buildFromRuleContext(ctx.expression()),
+            ctx.start.line
         )
     }
 

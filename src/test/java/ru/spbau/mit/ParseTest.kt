@@ -9,7 +9,7 @@ class ParseTest : TestClass() {
         val sourceCode = getFileContent(sourceFileName)
         val expectedAstString = getFileContent(astStringFileName)
 
-        assertThat(buildAst(sourceCode, null).toString(), equalTo(expectedAstString))
+        assertThat(buildAst(sourceCode).toString(), equalTo(expectedAstString))
     }
 
     @Test
