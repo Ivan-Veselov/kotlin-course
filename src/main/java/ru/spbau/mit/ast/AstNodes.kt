@@ -2,6 +2,8 @@ package ru.spbau.mit.ast
 
 import ru.spbau.mit.*
 import ru.spbau.mit.Context.FixedContext
+import ru.spbau.mit.ast.visitors.AstExpressionsVisitor
+import ru.spbau.mit.ast.visitors.AstNodesVisitor
 
 import ru.spbau.mit.parser.FunParser
 
@@ -36,7 +38,7 @@ fun buildFromRuleContext(
 }
 
 abstract class AstNode {
-    abstract fun accept(visitor: AstNodesVisitor)
+    abstract fun <R> accept(visitor: AstNodesVisitor<R>) : R
 
     abstract suspend fun execute(context: Context): ExecutionResult
 }
@@ -46,8 +48,8 @@ class AstFile(val body: AstBlock) : AstNode() {
         return "AstFile(body=$body)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     suspend override fun execute(context: Context): ExecutionResult {
@@ -60,8 +62,8 @@ class AstBlock(val statements: List<AstStatement>) : AstNode() {
         return "AstBlock(statements=$statements)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     override suspend fun execute(context: Context): ExecutionResult {
@@ -100,8 +102,8 @@ class AstFunctionDefinition(
         return "AstFunctionDefinition(name=$name, parameterNames=$parameterNames, body=$body)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -124,8 +126,8 @@ class AstVariableDefinition(
         return "AstVariableDefinition(name=$name, initializingExpression=$initializingExpression)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -139,8 +141,12 @@ class AstVariableDefinition(
 abstract class AstExpression(
     line: Int,
     listener: ExecutionListener?
-) : AstStatement(line, listener) {
-    abstract suspend fun evaluate(context: FixedContext): Int
+) : AstStatement(line, listener) { // todo: remove this inheritance?
+    abstract suspend fun <R> accept(visitor: AstExpressionsVisitor<R>) : R
+
+    suspend fun evaluate(context: FixedContext) : Int {
+        return accept(AstExpressionsEvaluator(context))
+    }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
         evaluate(context.fixed())
@@ -158,8 +164,8 @@ class AstWhile(
         return "AstWhile(condition=$condition, body=$body)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -185,8 +191,8 @@ class AstIf(
         return "AstIf(condition=$condition, thenBody=$thenBody, elseBody=$elseBody)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -212,8 +218,8 @@ class AstAssignment(
         return "AstAssignment(identifier=$identifier, expression=$expression)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -233,8 +239,8 @@ class AstReturn(
         return "AstReturn(expression=$expression)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -243,7 +249,7 @@ class AstReturn(
 }
 
 class AstVariableAccess(
-    private val identifier: String,
+    val identifier: String,
     line: Int,
     listener: ExecutionListener?
 ) : AstExpression(line, listener) {
@@ -251,18 +257,18 @@ class AstVariableAccess(
         return "AstVariableAccess(identifier=$identifier)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override suspend fun <R> accept(visitor: AstExpressionsVisitor<R>): R {
+        return visitor.visit(this)
     }
 
-    override suspend fun evaluate(context: FixedContext): Int {
-        return context.getVariable(identifier).data
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 }
 
 class AstFunctionCall(
-    private val identifier: String,
-    private val argumentExpressions: List<AstExpression>,
+    val identifier: String,
+    val argumentExpressions: List<AstExpression>,
     line: Int,
     listener: ExecutionListener?
 ) : AstExpression(line, listener) {
@@ -270,42 +276,17 @@ class AstFunctionCall(
         return "AstFunctionCall(identifier=$identifier, argumentExpressions=$argumentExpressions)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override suspend fun <R> accept(visitor: AstExpressionsVisitor<R>): R {
+        return visitor.visit(this)
     }
 
-    override suspend fun evaluate(context: FixedContext): Int {
-        val defaultReturnValue = 0
-
-        if (identifier == BuiltinsHandler.printlnName) {
-            context.builtinsHandler.println(argumentExpressions.map { it.evaluate(context) })
-            return defaultReturnValue
-        }
-
-        val function = context.getFunction(identifier)
-
-        val functionContext = Context(function.initialContext)
-        functionContext.addFunction(identifier, function)
-
-        if (function.argumentNames.size != argumentExpressions.size) {
-            throw WrongNumberOfFunctionArgumentsException(identifier)
-        }
-
-        val argumentsNumber = function.argumentNames.size
-        repeat(argumentsNumber) {
-            functionContext.addVariable(
-                    function.argumentNames[it],
-                    Variable(argumentExpressions[it].evaluate(context))
-            )
-        }
-
-        val result = function.body.execute(functionContext)
-        return if (result.unwind) result.value else defaultReturnValue
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 }
 
 class AstLiteral(
-    private val value: Int,
+    val value: Int,
     line: Int,
     listener: ExecutionListener?
 ) : AstExpression(line, listener) {
@@ -313,19 +294,19 @@ class AstLiteral(
         return "AstLiteral(value=$value)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override suspend fun <R> accept(visitor: AstExpressionsVisitor<R>): R {
+        return visitor.visit(this)
     }
 
-    override suspend fun evaluate(context: FixedContext): Int {
-        return value
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 }
 
 class AstBinaryExpression(
-    private val operationType: BinaryOperationType,
-    private val leftOperand: AstExpression,
-    private val rightOperand: AstExpression,
+    val operationType: BinaryOperationType,
+    val leftOperand: AstExpression,
+    val rightOperand: AstExpression,
     line: Int,
     listener: ExecutionListener?
 ) : AstExpression(line, listener) {
@@ -334,14 +315,11 @@ class AstBinaryExpression(
                 "rightOperand=$rightOperand)"
     }
 
-    override fun accept(visitor: AstNodesVisitor) {
-        visitor.visit(this)
+    override suspend fun <R> accept(visitor: AstExpressionsVisitor<R>): R {
+        return visitor.visit(this)
     }
 
-    override suspend fun evaluate(context: FixedContext): Int {
-        val leftValue = leftOperand.evaluate(context)
-        val rightValue = rightOperand.evaluate(context)
-
-        return operationType.evaluate(leftValue, rightValue)
+    override fun <R> accept(visitor: AstNodesVisitor<R>) : R {
+        return visitor.visit(this)
     }
 }
