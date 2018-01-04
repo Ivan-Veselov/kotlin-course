@@ -22,7 +22,7 @@ open class TestClass {
         val byteArray = ByteArrayOutputStream()
         PrintStream(byteArray).use {
             runBlocking {
-                ast.body.execute(Context(BuiltinsHandler(it)))
+                ast.execute(Context(BuiltinsHandler(it)))
             }
 
             it.flush()

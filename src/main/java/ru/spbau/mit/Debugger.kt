@@ -38,7 +38,7 @@ class Debugger(sourceCode: String, private val stream: PrintStream) {
         isRunning = true
 
         val action: suspend () -> Unit = {
-            file.body.execute(Context(BuiltinsHandler(stream)))
+            file.execute(Context(BuiltinsHandler(stream)))
         }
 
         action.startCoroutine(object : Continuation<Unit> {

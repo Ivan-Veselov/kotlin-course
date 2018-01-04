@@ -35,19 +35,33 @@ fun buildFromRuleContext(
     return rule.accept(ExpressionContextVisitor(listener))
 }
 
-class AstFile(val body: AstBlock) {
-    override fun toString(): String {
-        return "AstFile(body=$body)"
-    }
-}
+abstract class AstNode {
+    abstract fun accept(visitor: AstNodesVisitor)
 
-abstract class ExecutableAstNode {
     abstract suspend fun execute(context: Context): ExecutionResult
 }
 
-class AstBlock(val statements: List<AstStatement>) : ExecutableAstNode() {
+class AstFile(val body: AstBlock) : AstNode() {
+    override fun toString(): String {
+        return "AstFile(body=$body)"
+    }
+
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
+    }
+
+    suspend override fun execute(context: Context): ExecutionResult {
+        return body.execute(context)
+    }
+}
+
+class AstBlock(val statements: List<AstStatement>) : AstNode() {
     override fun toString(): String {
         return "AstBlock(statements=$statements)"
+    }
+
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
     }
 
     override suspend fun execute(context: Context): ExecutionResult {
@@ -65,7 +79,7 @@ class AstBlock(val statements: List<AstStatement>) : ExecutableAstNode() {
 abstract class AstStatement(
     val line: Int,
     private val listener: ExecutionListener?
-) : ExecutableAstNode() {
+) : AstNode() {
     override suspend fun execute(context: Context): ExecutionResult {
         listener?.notifyExecutionStart(this, context.fixed())
 
@@ -82,9 +96,12 @@ class AstFunctionDefinition(
     line: Int,
     listener: ExecutionListener?
 ) : AstStatement(line, listener) {
-
     override fun toString(): String {
         return "AstFunctionDefinition(name=$name, parameterNames=$parameterNames, body=$body)"
+    }
+
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -105,6 +122,10 @@ class AstVariableDefinition(
 ) : AstStatement(line, listener) {
     override fun toString(): String {
         return "AstVariableDefinition(name=$name, initializingExpression=$initializingExpression)"
+    }
+
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -137,6 +158,10 @@ class AstWhile(
         return "AstWhile(condition=$condition, body=$body)"
     }
 
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
+    }
+
     override suspend fun executeStatement(context: Context): ExecutionResult {
         while (condition.evaluate(context.fixed()) != 0)  {
             val result = body.execute(Context(context.fixed()))
@@ -158,6 +183,10 @@ class AstIf(
 ) : AstStatement(line, listener) {
     override fun toString(): String {
         return "AstIf(condition=$condition, thenBody=$thenBody, elseBody=$elseBody)"
+    }
+
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
     }
 
     override suspend fun executeStatement(context: Context): ExecutionResult {
@@ -183,6 +212,10 @@ class AstAssignment(
         return "AstAssignment(identifier=$identifier, expression=$expression)"
     }
 
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
+    }
+
     override suspend fun executeStatement(context: Context): ExecutionResult {
         val variable = context.getVariable(identifier)
         variable.data = expression.evaluate(context.fixed())
@@ -200,6 +233,10 @@ class AstReturn(
         return "AstReturn(expression=$expression)"
     }
 
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
+    }
+
     override suspend fun executeStatement(context: Context): ExecutionResult {
         return ExecutionResult(true, expression.evaluate(context.fixed()))
     }
@@ -214,6 +251,10 @@ class AstVariableAccess(
         return "AstVariableAccess(identifier=$identifier)"
     }
 
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
+    }
+
     override suspend fun evaluate(context: FixedContext): Int {
         return context.getVariable(identifier).data
     }
@@ -225,9 +266,12 @@ class AstFunctionCall(
     line: Int,
     listener: ExecutionListener?
 ) : AstExpression(line, listener) {
-
     override fun toString(): String {
         return "AstFunctionCall(identifier=$identifier, argumentExpressions=$argumentExpressions)"
+    }
+
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
     }
 
     override suspend fun evaluate(context: FixedContext): Int {
@@ -269,6 +313,10 @@ class AstLiteral(
         return "AstLiteral(value=$value)"
     }
 
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
+    }
+
     override suspend fun evaluate(context: FixedContext): Int {
         return value
     }
@@ -284,6 +332,10 @@ class AstBinaryExpression(
     override fun toString(): String {
         return "AstBinaryExpression(operationType=$operationType, leftOperand=$leftOperand, " +
                 "rightOperand=$rightOperand)"
+    }
+
+    override fun accept(visitor: AstNodesVisitor) {
+        visitor.visit(this)
     }
 
     override suspend fun evaluate(context: FixedContext): Int {
