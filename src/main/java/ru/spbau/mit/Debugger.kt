@@ -37,9 +37,17 @@ class Debugger(sourceCode: String, private val stream: PrintStream) {
     fun runInterpretation() {
         isRunning = true
 
-        launch {
+        val action: suspend () -> Unit = {
             file.body.execute(Context(BuiltinsHandler(stream)))
         }
+
+        action.startCoroutine(object : Continuation<Unit> {
+            override val context: CoroutineContext = EmptyCoroutineContext
+
+            override fun resume(value: Unit) { }
+
+            override fun resumeWithException(exception: Throwable) { }
+        })
     }
 
     fun evaluateExpression(expression: AstExpression) {
@@ -60,15 +68,5 @@ class Debugger(sourceCode: String, private val stream: PrintStream) {
         }
 
         listener.resume()
-    }
-
-    private fun launch(action: suspend () -> Unit) {
-        action.startCoroutine(object : Continuation<Unit> {
-            override val context: CoroutineContext = EmptyCoroutineContext
-
-            override fun resume(value: Unit) { }
-
-            override fun resumeWithException(exception: Throwable) { }
-        })
     }
 }
