@@ -21,9 +21,9 @@ class App(
     private val outStream: PrintStream,
     private val errStream: PrintStream
 ) {
-    fun run() {
-        var debugger: Debugger? = null
+    private var debugger: Debugger? = null
 
+    fun run() {
         while (true) {
             try {
                 val tokens = inStream.readLine()?.split(' ') ?: break
@@ -31,105 +31,8 @@ class App(
                     continue
                 }
 
-                fun assertNumberOfArguments(numberOfArguments: Int) {
-                    if (tokens.size != numberOfArguments + 1) {
-                        throw InvalidNumberOfArgumentsException()
-                    }
-                }
-
-                val command = tokens.first()
-
                 try {
-                    when (command) {
-                        "load" -> {
-                            assertNumberOfArguments(1)
-
-                            debugger = Debugger(getFileContent(tokens[1]), outStream)
-                        }
-
-                        "breakpoint" -> {
-                            assertNumberOfArguments(1)
-
-                            if (debugger == null) {
-                                throw NoRunningProgramException()
-                            }
-
-                            debugger.addBreakpoint(tokens[1].toInt())
-                        }
-
-                        "condition" -> {
-                            assertNumberOfArguments(2)
-
-                            if (debugger == null) {
-                                throw NoRunningProgramException()
-                            }
-
-                            debugger.addConditionalBreakpoint(
-                                    tokens[1].toInt(),
-                                    buildExpression(tokens[2], null)
-                            )
-                        }
-
-                        "list" -> {
-                            assertNumberOfArguments(0)
-
-                            if (debugger == null) {
-                                throw NoRunningProgramException()
-                            }
-
-                            for (pair in debugger.listBreakpoints()) {
-                                outStream.println("${pair.first}: ${pair.second}")
-                            }
-                        }
-
-                        "remove" -> {
-                            assertNumberOfArguments(1)
-
-                            if (debugger == null) {
-                                throw NoRunningProgramException()
-                            }
-
-                            debugger.removeBreakpoint(tokens[1].toInt())
-                        }
-
-                        "run" -> {
-                            assertNumberOfArguments(0)
-
-                            if (debugger == null) {
-                                throw NoRunningProgramException()
-                            }
-
-                            debugger.runInterpretation()
-                        }
-
-                        "evaluate" -> {
-                            assertNumberOfArguments(1)
-
-                            if (debugger == null) {
-                                throw NoRunningProgramException()
-                            }
-
-                            debugger.evaluateExpression(buildExpression(tokens[1], null))
-                        }
-
-                        "stop" -> {
-                            assertNumberOfArguments(0)
-
-                            debugger = null
-                        }
-
-                        "continue" -> {
-                            assertNumberOfArguments(0)
-
-                            if (debugger == null) {
-                                throw NoRunningProgramException()
-                            }
-
-                            debugger.continueInterpretation()
-                        }
-
-                        else -> errStream.println("Unknown command: $command")
-                    }
+                    executeCommand(tokens)
                 } catch (_: InvalidNumberOfArgumentsException) {
                     errStream.println("Invalid number of arguments")
                 }
@@ -156,6 +59,108 @@ class App(
             } catch (_: NoRunningProgramException) {
                 errStream.println("No running program")
             }
+        }
+    }
+
+    private fun executeCommand(tokens: List<String>) {
+        fun assertNumberOfArguments(numberOfArguments: Int) {
+            if (tokens.size != numberOfArguments + 1) {
+                throw InvalidNumberOfArgumentsException()
+            }
+        }
+
+        val command = tokens.first()
+        val debuggerCopy = debugger
+
+        when (command) {
+            "load" -> {
+                assertNumberOfArguments(1)
+
+                debugger = Debugger(getFileContent(tokens[1]), outStream)
+            }
+
+            "breakpoint" -> {
+                assertNumberOfArguments(1)
+
+                if (debuggerCopy == null) {
+                    throw NoRunningProgramException()
+                }
+
+                debuggerCopy.addBreakpoint(tokens[1].toInt())
+            }
+
+            "condition" -> {
+                assertNumberOfArguments(2)
+
+                if (debuggerCopy == null) {
+                    throw NoRunningProgramException()
+                }
+
+                debuggerCopy.addConditionalBreakpoint(
+                        tokens[1].toInt(),
+                        buildExpression(tokens[2], null)
+                )
+            }
+
+            "list" -> {
+                assertNumberOfArguments(0)
+
+                if (debuggerCopy == null) {
+                    throw NoRunningProgramException()
+                }
+
+                for (pair in debuggerCopy.listBreakpoints()) {
+                    outStream.println("${pair.first}: ${pair.second}")
+                }
+            }
+
+            "remove" -> {
+                assertNumberOfArguments(1)
+
+                if (debuggerCopy == null) {
+                    throw NoRunningProgramException()
+                }
+
+                debuggerCopy.removeBreakpoint(tokens[1].toInt())
+            }
+
+            "run" -> {
+                assertNumberOfArguments(0)
+
+                if (debuggerCopy == null) {
+                    throw NoRunningProgramException()
+                }
+
+                debuggerCopy.runInterpretation()
+            }
+
+            "evaluate" -> {
+                assertNumberOfArguments(1)
+
+                if (debuggerCopy == null) {
+                    throw NoRunningProgramException()
+                }
+
+                debuggerCopy.evaluateExpression(buildExpression(tokens[1], null))
+            }
+
+            "stop" -> {
+                assertNumberOfArguments(0)
+
+                debugger = null
+            }
+
+            "continue" -> {
+                assertNumberOfArguments(0)
+
+                if (debuggerCopy == null) {
+                    throw NoRunningProgramException()
+                }
+
+                debuggerCopy.continueInterpretation()
+            }
+
+            else -> errStream.println("Unknown command: $command")
         }
     }
 
